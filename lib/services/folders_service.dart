@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:flutter/material.dart';
 import 'package:webp_to_gif/repositories/folder_repository.dart';
+import 'package:webp_to_gif/repositories/image_repository.dart';
+import 'package:webp_to_gif/services/db_service.dart';
 
 class FoldersService extends ChangeNotifier {
   final List<FolderModel> _items = [];
@@ -15,6 +17,15 @@ class FoldersService extends ChangeNotifier {
 
   init() async {
     _items.addAll(await FolderRepository().list());
+
+    if (currentFolder != null) {
+      var files = await ImageRepository().list(currentFolder!);
+
+      for (File file in files) {
+        currentFolder!.addImage(file);
+      }
+    }
+
     notifyListeners();
   }
 
@@ -37,6 +48,7 @@ class FoldersService extends ChangeNotifier {
         for (File fl in folder.images) {
           fl.delete();
         }
+        await FolderRepository().delete(fdr);
         _items.remove(fdr);
         break;
       }
@@ -49,7 +61,12 @@ class FoldersService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addImage(File file) {
+  void addImage(File file) async {
+    if (currentFolder == null) {
+      return;
+    }
+
+    await ImageRepository().create(file, currentFolder!);
     currentFolder?.addImage(file);
     notifyListeners();
   }

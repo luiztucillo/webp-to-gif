@@ -37,7 +37,7 @@ class FolderRepository{
       return null;
     }
 
-    await DbService().delete(table, folder.id!);
+    return await DbService().delete(table, folder.id!);
   }
 
   Future<List<FolderModel>> list() async {

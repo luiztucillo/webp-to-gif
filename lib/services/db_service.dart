@@ -26,11 +26,13 @@ class DbService {
   }
 
   Future<int?> insert(String table, Map<String, dynamic> values) async {
-    return await _db?.insert(table, values, conflictAlgorithm: ConflictAlgorithm.ignore);
+    return await _db?.insert(table, values,
+        conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   Future<bool?> update(String table, Map<String, dynamic> values) async {
-    int? rowsUpdated = await _db?.update(table, values, where: 'id = ?', whereArgs: [values['id']]);
+    int? rowsUpdated = await _db
+        ?.update(table, values, where: 'id = ?', whereArgs: [values['id']]);
 
     if (rowsUpdated == null) {
       return null;
@@ -43,8 +45,22 @@ class DbService {
     await _db?.delete(table, where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<Map<String, dynamic>>?> query(String table, List<String> columns, {int? limit, int? offset}) async {
-    return await _db?.query(table, columns: columns, limit: limit, offset: offset);
+  Future<List<Map<String, dynamic>>?> query(
+    String table,
+    List<String> columns, {
+    int? limit,
+    int? offset,
+    String? where,
+    List<dynamic>? whereArgs,
+  }) async {
+    return await _db?.query(
+      table,
+      columns: columns,
+      limit: limit,
+      offset: offset,
+      where: where,
+      whereArgs: whereArgs,
+    );
   }
 
   void _createDb(Batch batch) {
