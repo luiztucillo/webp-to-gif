@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/pages/folders_page.dart';
-import 'package:webp_to_gif/services/folders_service.dart';
+import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,9 +12,10 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (BuildContext context) => FoldersService(),
-      child: Consumer<FoldersService>(
-        builder: (BuildContext context, FoldersService folders, Widget? child) {
+      create: (BuildContext context) => FoldersProvider(),
+      child: Consumer<FoldersProvider>(
+        builder:
+            (BuildContext context, FoldersProvider folders, Widget? child) {
           return Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
@@ -28,7 +29,7 @@ class MyHomePage extends StatelessWidget {
                       children: folders.items
                           .map(
                             (FolderModel folder) => Container(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               child: TextButton(
                                 style: TextButton.styleFrom(
                                   backgroundColor: Colors.blue[50],
@@ -90,10 +91,10 @@ class MyHomePage extends StatelessWidget {
                           decoration: const InputDecoration(),
                           onSubmitted: (String value) {
                             folders.add(FolderModel(
-                                folders.items.length + 1,
-                                value,
-                                Colors.primaries[Random()
-                                    .nextInt(Colors.primaries.length)]));
+                              name: value,
+                              color: Colors.primaries[
+                                  Random().nextInt(Colors.primaries.length)],
+                            ));
                             Navigator.pop(context);
                           },
                         ),

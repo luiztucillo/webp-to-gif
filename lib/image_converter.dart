@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:webp_to_gif/services/folders_service.dart';
+import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:image/image.dart';
 import 'package:path_provider/path_provider.dart';
+
+import 'models/image_model.dart';
 
 class ImageConverter {
   final List<String> filePaths;
@@ -12,10 +14,10 @@ class ImageConverter {
     required this.filePaths,
   });
 
-  Future<List<File>> convert(FoldersService foldersService) async {
+  Future<List<ImageModel>> convert(FoldersProvider folderProvider) async {
     final dir = await getApplicationSupportDirectory();
 
-    List<File> result = [];
+    List<ImageModel> result = [];
 
     for (var path in filePaths) {
       var receivePort = ReceivePort();
@@ -27,8 +29,12 @@ class ImageConverter {
       File? file = await receivePort.first as File?;
 
       if (file != null) {
-        result.add(file);
-        foldersService.addImage(file);
+        var image = ImageModel(
+          file: file,
+          folderId: folderProvider.currentFolder!.id!
+        );
+        result.add(image);
+        folderProvider.addImage(image);
       }
     }
 

@@ -1,17 +1,15 @@
-import 'dart:io';
-
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:flutter/material.dart';
+import 'package:webp_to_gif/models/image_model.dart';
 import 'package:webp_to_gif/repositories/folder_repository.dart';
 import 'package:webp_to_gif/repositories/image_repository.dart';
-import 'package:webp_to_gif/services/db_service.dart';
 
-class FoldersService extends ChangeNotifier {
+class FoldersProvider extends ChangeNotifier {
   final List<FolderModel> _items = [];
   bool loading = false;
   FolderModel? currentFolder;
 
-  FoldersService({this.currentFolder}) {
+  FoldersProvider({this.currentFolder}) {
     init();
   }
 
@@ -19,10 +17,11 @@ class FoldersService extends ChangeNotifier {
     _items.addAll(await FolderRepository().list());
 
     if (currentFolder != null) {
-      var files = await ImageRepository().list(currentFolder!);
+      currentFolder!.resetImages();
+      var images = await ImageRepository().list(currentFolder!);
 
-      for (File file in files) {
-        currentFolder!.addImage(file);
+      for (ImageModel image in images) {
+        currentFolder!.addImage(image);
       }
     }
 
@@ -45,11 +44,22 @@ class FoldersService extends ChangeNotifier {
   Future<void> remove(FolderModel folder) async {
     for (FolderModel fdr in _items) {
       if (fdr.id == folder.id) {
-        for (File fl in folder.images) {
-          fl.delete();
+        for (ImageModel image in folder.images) {
+          try {
+            image.file.delete();
+          } catch (e) {
+            //
+          }
         }
+
+        await ImageRepository().delete(folder);
+
+        folder.resetImages();
+
         await FolderRepository().delete(fdr);
+
         _items.remove(fdr);
+
         break;
       }
     }
@@ -61,13 +71,13 @@ class FoldersService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addImage(File file) async {
+  void addImage(ImageModel image) async {
     if (currentFolder == null) {
       return;
     }
 
-    await ImageRepository().create(file, currentFolder!);
-    currentFolder?.addImage(file);
+    await ImageRepository().create(image, currentFolder!);
+    currentFolder?.addImage(image);
     notifyListeners();
   }
 }

@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:webp_to_gif/models/folder_model.dart';
+import 'package:webp_to_gif/models/image_model.dart';
 import 'package:webp_to_gif/services/db_service.dart';
 
 class ImageRepository {
@@ -15,10 +14,8 @@ class ImageRepository {
 
   final String table = 'images';
 
-  Future<int?> create(File file, FolderModel folder) async {
-    var map = {'path': file.path, 'folder_id': folder.id};
-
-    int? id = await DbService().insert(table, map);
+  Future<int?> create(ImageModel image, FolderModel folder) async {
+    int? id = await DbService().insert(table, image.toMap());
 
     if (id == null) {
       return null;
@@ -27,7 +24,7 @@ class ImageRepository {
     return id;
   }
 
-  Future<List<File>> list(FolderModel folder) async {
+  Future<List<ImageModel>> list(FolderModel folder) async {
     var maped = await DbService().query(
       table,
       ['id', 'path', 'folder_id'],
@@ -39,12 +36,20 @@ class ImageRepository {
       return [];
     }
 
-    List<File> result = [];
+    List<ImageModel> result = [];
 
     for (var map in maped) {
-      result.add(File(map['path']));
+      result.add(ImageModel.fromMap(map));
     }
 
     return result;
+  }
+
+  Future delete(FolderModel folder) async {
+    if (folder.id == null) {
+      return null;
+    }
+
+    return await DbService().deleteWhere(table, 'folder_id = ?', [folder.id]);
   }
 }

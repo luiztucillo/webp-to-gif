@@ -41,8 +41,24 @@ class DbService {
     return rowsUpdated > 0;
   }
 
+  Future<bool?> deleteWhere(String table, String where, List<dynamic> whereArgs) async {
+    var result = await _db?.delete(table, where: where, whereArgs: [whereArgs]);
+
+    if (result == null) {
+      return null;
+    }
+
+    return result > 0;
+  }
+
   Future<bool?> delete(String table, int id) async {
-    await _db?.delete(table, where: 'id = ?', whereArgs: [id]);
+    var result = await _db?.delete(table, where: 'id = ?', whereArgs: [id]);
+
+    if (result == null) {
+      return null;
+    }
+
+    return result > 0;
   }
 
   Future<List<Map<String, dynamic>>?> query(

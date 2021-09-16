@@ -1,18 +1,22 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+
+import 'image_model.dart';
 
 class FolderModel {
   final String name;
   final Color color;
-  final List<File> images = [];
+  final List<ImageModel> images = [];
 
   int? id;
 
-  FolderModel(this.id, this.name, this.color);
+  FolderModel({this.id, required this.name, required this.color});
 
-  void addImage(File file) {
-    images.add(file);
+  void resetImages() {
+    images.clear();
+  }
+
+  void addImage(ImageModel image) {
+    images.add(image);
   }
 
   Map<String, dynamic> toMap() {
@@ -30,9 +34,9 @@ class FolderModel {
 
   factory FolderModel.fromMap(Map<String, dynamic> map) {
     return FolderModel(
-      map['id'],
-      map['name'],
-      Color(int.parse(map['color'])),
+      id: map['id'],
+      name: map['name'],
+      color: Color(int.parse(map['color'])),
     );
   }
 }
