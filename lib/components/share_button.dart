@@ -17,24 +17,10 @@ class ShareButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: TextButton(
-          style: TextButton.styleFrom(
-            primary: Colors.white,
-            backgroundColor: color ?? Colors.blue[300],
-            padding: const EdgeInsets.all(16),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.share, size: 30),
-              const SizedBox(width: 16),
-              Text(
-                label,
-                style: const TextStyle(fontSize: 20),
-              ),
-            ],
-          ),
+        padding: const EdgeInsets.all(8),
+        child: FloatingActionButton(
+          backgroundColor: Colors.green,
+          child: const Icon(Icons.share),
           onPressed: () {
             List<String> images = [];
             for (File file in files) {

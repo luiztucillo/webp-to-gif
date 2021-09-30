@@ -21,6 +21,12 @@ class SelectionModeProvider extends ChangeNotifier {
     image.toggleSelect();
   }
 
+  void removeSelected() {
+    for (var img in _selectedItems) {
+      img.file.delete();
+    }
+  }
+
   void _addToSelection(ImageModel image) {
     _selectedItems.add(image);
     _inSelectionMode = _selectedItems.isNotEmpty;

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:webp_to_gif/loader.dart';
 import 'package:webp_to_gif/providers/selection_mode_provider.dart';
 
-import 'models/image_model.dart';
+import '../models/image_model.dart';
 
 class ImageContainer extends StatelessWidget {
   final ImageModel image;
@@ -22,12 +21,18 @@ class ImageContainer extends StatelessWidget {
       builder: (context, selectionModeProvider, widget) => Stack(
         children: [
           TextButton(
-            child: image.file == null ? const Loader() : Image.file(image.file!),
+            child: Center(
+              child: Image.file(image.file),
+            ),
             onLongPress: () {
+              if (!image.converted) {
+                return;
+              }
+
               selectionModeProvider.toggleSelection(image);
             },
             onPressed: () {
-              if (image.file == null) {
+              if (!image.converted) {
                 return;
               }
 
@@ -36,20 +41,29 @@ class ImageContainer extends StatelessWidget {
                 return;
               }
 
-              Share.shareFiles([image.file!.path]);
+              Share.shareFiles([image.file.path]);
             },
+          ),
+          image.converted ? const IgnorePointer() : const IgnorePointer(
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 8,
+                color: Colors.white,
+                backgroundColor: Colors.blue,
+              ),
+            ),
           ),
           IgnorePointer(
             child: Container(
               padding: const EdgeInsets.all(8),
-              color: isSelected ? Colors.blue.withAlpha(100) : Colors.transparent,
+              color: isSelected ? Colors.blue.withAlpha(50) : Colors.transparent,
               alignment: Alignment.bottomRight,
               child: !isSelected
                   ? Container()
                   : const Icon(
                 Icons.check_box,
                 size: 30,
-                color: Colors.green,
+                color: Colors.blue,
               ),
             ),
           ),

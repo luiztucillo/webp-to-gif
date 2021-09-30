@@ -13,9 +13,12 @@ class DbService {
 
   init() async {
     var databasesPath = await getDatabasesPath();
+    var path = '$databasesPath/my_db.db';
+
+    // await deleteDatabase(path);
 
     _db = await openDatabase(
-      '$databasesPath/my_db.db',
+      path,
       version: 1,
       onCreate: (db, version) async {
         var batch = db.batch();
@@ -30,32 +33,32 @@ class DbService {
         conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
-  Future<bool?> update(String table, Map<String, dynamic> values) async {
+  Future<bool> update(String table, Map<String, dynamic> values) async {
     int? rowsUpdated = await _db
         ?.update(table, values, where: 'id = ?', whereArgs: [values['id']]);
 
     if (rowsUpdated == null) {
-      return null;
+      return false;
     }
 
     return rowsUpdated > 0;
   }
 
-  Future<bool?> deleteWhere(String table, String where, List<dynamic> whereArgs) async {
+  Future<bool> deleteWhere(String table, String where, List<dynamic> whereArgs) async {
     var result = await _db?.delete(table, where: where, whereArgs: [whereArgs]);
 
     if (result == null) {
-      return null;
+      return false;
     }
 
     return result > 0;
   }
 
-  Future<bool?> delete(String table, int id) async {
+  Future<bool> delete(String table, int id) async {
     var result = await _db?.delete(table, where: 'id = ?', whereArgs: [id]);
 
     if (result == null) {
-      return null;
+      return false;
     }
 
     return result > 0;
@@ -92,7 +95,8 @@ class DbService {
     batch.execute('''
     CREATE TABLE images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT,
+    file TEXT,
+    converted INTEGER,
     folder_id INTEGER
     )''');
   }

@@ -27,7 +27,7 @@ class ImageRepository {
   Future<List<ImageModel>> list(FolderModel folder) async {
     var maped = await DbService().query(
       table,
-      ['id', 'path', 'folder_id'],
+      ['id', 'file', 'converted', 'folder_id'],
       where: 'folder_id = ?',
       whereArgs: [folder.id],
     );
@@ -51,5 +51,17 @@ class ImageRepository {
     }
 
     return await DbService().deleteWhere(table, 'folder_id = ?', [folder.id]);
+  }
+
+  Future<bool> deleteImage(ImageModel img) async {
+    if (img.id == null) {
+      return false;
+    }
+
+    return await DbService().delete(table, img.id!);
+  }
+
+  Future<bool> update(ImageModel img) async {
+    return await DbService().update(table, img.toMap());
   }
 }

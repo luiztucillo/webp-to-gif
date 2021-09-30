@@ -45,12 +45,8 @@ class FoldersProvider extends ChangeNotifier {
     for (FolderModel fdr in _items) {
       if (fdr.id == folder.id) {
         for (ImageModel image in folder.images) {
-          if (image.file == null) {
-            continue;
-          }
-
           try {
-            image.file!.delete();
+            image.file.delete();
           } catch (e) {
             //
           }
@@ -70,6 +66,34 @@ class FoldersProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> removeImage(ImageModel image) async {
+    if (currentFolder == null) {
+      return;
+    }
+
+    if (image.folderId != currentFolder!.id) {
+      return;
+    }
+
+    var result = await ImageRepository().deleteImage(image);
+
+    if (result == false) {
+      return;
+    }
+
+    image.file.delete();
+
+    currentFolder!.images.removeWhere((ImageModel img) => img.id == image.id);
+
+    for (FolderModel fdr in _items) {
+      if (fdr.id == currentFolder!.id) {
+        fdr.images.removeWhere((ImageModel img) => img.id == image.id);
+      }
+    }
+
+    notifyListeners();
+  }
+
   void removeAll() {
     _items.clear();
     notifyListeners();
@@ -80,12 +104,21 @@ class FoldersProvider extends ChangeNotifier {
       return;
     }
 
-    await ImageRepository().create(image, currentFolder!);
-    currentFolder?.addImage(image);
+    var id = await ImageRepository().create(image, currentFolder!);
+
+    if (id != null) {
+      image.id = id;
+      currentFolder!.addImage(image);
+    }
+
     notifyListeners();
   }
 
-  void imageUpdated() {
-    notifyListeners();
+  void updateImage(ImageModel image) async {
+    await ImageRepository().update(image);
+
+    if (hasListeners) {
+      notifyListeners();
+    }
   }
 }

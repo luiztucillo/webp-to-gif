@@ -2,17 +2,18 @@ import 'dart:io';
 
 class ImageModel {
   final int folderId;
-  File? file;
+  bool converted;
+  File file;
+
   bool _selected = false;
-  String? path;
 
   int? id;
 
   ImageModel({
     required this.folderId,
+    required this.file,
+    required this.converted,
     this.id,
-    this.file,
-    this.path,
   });
 
   void toggleSelect() {
@@ -26,11 +27,9 @@ class ImageModel {
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {
       'folder_id': folderId,
+      'file': file.path,
+      'converted': converted ? 1 : 0,
     };
-
-    if (file != null) {
-      map['path'] = file!.path;
-    }
 
     if (id != null) {
       map['id'] = id;
@@ -41,9 +40,10 @@ class ImageModel {
 
   factory ImageModel.fromMap(Map<String, dynamic> map) {
     return ImageModel(
-      id: map['id'],
-      file: File(map['path']),
       folderId: map['folder_id'],
+      file: File(map['file']),
+      converted: map['converted'] == 1 ? true : false,
+      id: map['id'],
     );
   }
 }

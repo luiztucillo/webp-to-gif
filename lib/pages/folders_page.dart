@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:uuid/uuid.dart';
+import 'package:webp_to_gif/components/delete_button.dart';
 import 'package:webp_to_gif/components/share_button.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
@@ -7,8 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webp_to_gif/providers/selection_mode_provider.dart';
 
-import '../image_container.dart';
-import '../image_converter.dart';
+import '../components/image_container.dart';
+import '../services/image_converter.dart';
 
 class FoldersPage extends StatelessWidget {
   final FolderModel folder;
@@ -30,75 +34,106 @@ class FoldersPage extends StatelessWidget {
             appBar: AppBar(
               title: Text(folder.name),
             ),
-            body: Column(
-              children: [
-                folder.images.isNotEmpty
-                    ? ShareButton(
-                        label: 'Compartilhar todos',
-                        files: folder.images
-                            .where((ImageModel img) => img.file != null)
-                            .map((ImageModel img) => img.file!)
-                            .toList(),
-                      )
-                    : Container(),
-                selectionModeProvider.inSelectionMode &&
-                        selectionModeProvider.selectedItems.isNotEmpty
-                    ? ShareButton(
-                        color: Colors.green[300],
-                        label: 'Compartilhar selecionadas',
-                        files: selectionModeProvider.selectedItems
-                            .where((ImageModel img) => img.file != null)
-                            .map((ImageModel img) => img.file!)
-                            .toList(),
-                      )
-                    : Container(),
-                Expanded(
-                  child: Center(
-                    child: GridView.count(
-                      crossAxisCount: 3,
-                      children: folder.images
-                          .map(
-                            (ImageModel image) => ImageContainer(
-                              image: image,
-                              isSelected: image.isSelected(),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                ),
-              ],
+            body: Center(
+              child: GridView.count(
+                crossAxisCount: 3,
+                crossAxisSpacing: 3,
+                mainAxisSpacing: 3,
+                children: folder.images
+                    .map(
+                      (ImageModel image) => Container(
+                        color: Colors.grey[200],
+                        child: ImageContainer(
+                          key: Key(image.id != null ? image.id.toString() : const Uuid().toString()),
+                          image: image,
+                          isSelected: image.isSelected(),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () async {
-                      FilePickerResult? result =
-                          await FilePicker.platform.pickFiles(
-                        type: FileType.custom,
-                        allowedExtensions: ['webp'],
-                        allowMultiple: true,
-                      );
-
-                      if (result != null) {
-                        folderProvider.setLoading(true);
-
-                        var converter = ImageConverter(
-                          filePaths: result.paths.whereType<String>().toList(),
-                        );
-
-                        try {
-                          await converter.convert(folderProvider);
-                        } catch (e) {
-                          //
-                        }
-
-                        folderProvider.setLoading(false);
-                      }
-                    },
-              child: const Icon(Icons.add),
+            floatingActionButton: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: _floatingButtons(folderProvider, selectionModeProvider),
             ), // This trailing comma makes auto-formatting nicer for build methods.
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _floatingButtons(FoldersProvider folderProvider, SelectionModeProvider selectionModeProvider) {
+    List<Widget> bts = [];
+
+    if (folder.images.isNotEmpty && !selectionModeProvider.inSelectionMode) {
+      bts.add(ShareButton(
+        key: const Key('delete-all'),
+        label: 'Compartilhar tudo',
+        files: folder.images
+            .map((ImageModel img) => img.file)
+            .toList(),
+      ));
+    }
+
+    if (selectionModeProvider.inSelectionMode && selectionModeProvider.selectedItems.isNotEmpty) {
+      bts.add(ShareButton(
+        key: const Key('share-selected'),
+        color: Colors.green[300],
+        label: 'Compartilhar',
+        files: selectionModeProvider.selectedItems
+            .map((ImageModel img) => img.file)
+            .toList(),
+      ));
+    }
+
+    if (selectionModeProvider.inSelectionMode && selectionModeProvider.selectedItems.isNotEmpty) {
+      bts.add(DeleteButton(
+        key: const Key('delete-button'),
+        onPressed: () {
+          for (ImageModel imgModel
+          in selectionModeProvider.selectedItems) {
+            folderProvider.removeImage(imgModel);
+          }
+        },
+      ));
+    }
+
+    bts.add(FloatingActionButton(
+      key: const Key('pick-files'),
+      onPressed: () async {
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['webp'],
+          allowMultiple: true,
+        );
+
+        if (result != null) {
+          List<ImageModel> imgModels = [];
+
+          for (var path in result.paths) {
+            var mdl = ImageModel(
+              folderId: folder.id!,
+              file: File(path!),
+              converted: false,
+            );
+
+            imgModels.add(mdl);
+
+            folderProvider.addImage(mdl);
+          }
+
+          for (var mdl in imgModels) {
+            await ImageConverter(
+              imgModel: mdl,
+              folderProvider: folderProvider,
+            ).convert();
+          }
+        }
+      },
+      child: const Icon(Icons.add),
+    ));
+
+    return bts;
   }
 }
