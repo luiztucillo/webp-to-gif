@@ -20,21 +20,26 @@ class ImageConverter {
     List<ImageModel> result = [];
 
     for (var path in filePaths) {
+      var imageModel = ImageModel(
+          folderId: folderProvider.currentFolder!.id!,
+          path: path,
+      );
+      result.add(imageModel);
+      folderProvider.addImage(imageModel);
+    }
+
+    for (var imgModel in result) {
       var receivePort = ReceivePort();
       await Isolate.spawn(
         _convertIsolate,
-        DecodeParam(path, dir.path, receivePort.sendPort),
+        DecodeParam(imgModel.path!, dir.path, receivePort.sendPort),
       );
 
       File? file = await receivePort.first as File?;
 
       if (file != null) {
-        var image = ImageModel(
-          file: file,
-          folderId: folderProvider.currentFolder!.id!
-        );
-        result.add(image);
-        folderProvider.addImage(image);
+        imgModel.file = file;
+        folderProvider.imageUpdated();
       }
     }
 

@@ -29,6 +29,7 @@ class MyHomePage extends StatelessWidget {
                       children: folders.items
                           .map(
                             (FolderModel folder) => Container(
+                              key: Key(folder.id.toString()),
                               padding: const EdgeInsets.all(8),
                               child: TextButton(
                                 style: TextButton.styleFrom(
@@ -82,24 +83,25 @@ class MyHomePage extends StatelessWidget {
               onPressed: () async {
                 TextEditingController controller = TextEditingController();
                 showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text('Qual o nome da pasta?'),
-                        content: TextField(
-                          controller: controller,
-                          decoration: const InputDecoration(),
-                          onSubmitted: (String value) {
-                            folders.add(FolderModel(
-                              name: value,
-                              color: Colors.primaries[
-                                  Random().nextInt(Colors.primaries.length)],
-                            ));
-                            Navigator.pop(context);
-                          },
-                        ),
-                      );
-                    });
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Qual o nome da pasta?'),
+                      content: TextField(
+                        controller: controller,
+                        decoration: const InputDecoration(),
+                        onSubmitted: (String value) {
+                          folders.add(FolderModel(
+                            name: value,
+                            color: Colors.primaries[
+                                Random().nextInt(Colors.primaries.length)],
+                          ));
+                          Navigator.pop(context);
+                        },
+                      ),
+                    );
+                  },
+                );
               },
               child: const Icon(Icons.add),
             ), // This trailing comma makes auto-formatting nicer for build methods.

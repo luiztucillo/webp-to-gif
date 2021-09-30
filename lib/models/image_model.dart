@@ -1,13 +1,19 @@
 import 'dart:io';
 
 class ImageModel {
-  final File file;
   final int folderId;
+  File? file;
   bool _selected = false;
+  String? path;
 
   int? id;
 
-  ImageModel({this.id, required this.file, required this.folderId});
+  ImageModel({
+    required this.folderId,
+    this.id,
+    this.file,
+    this.path,
+  });
 
   void toggleSelect() {
     _selected = !_selected;
@@ -19,9 +25,12 @@ class ImageModel {
 
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {
-      'path': file.path,
       'folder_id': folderId,
     };
+
+    if (file != null) {
+      map['path'] = file!.path;
+    }
 
     if (id != null) {
       map['id'] = id;

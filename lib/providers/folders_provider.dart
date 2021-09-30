@@ -45,8 +45,12 @@ class FoldersProvider extends ChangeNotifier {
     for (FolderModel fdr in _items) {
       if (fdr.id == folder.id) {
         for (ImageModel image in folder.images) {
+          if (image.file == null) {
+            continue;
+          }
+
           try {
-            image.file.delete();
+            image.file!.delete();
           } catch (e) {
             //
           }
@@ -78,6 +82,10 @@ class FoldersProvider extends ChangeNotifier {
 
     await ImageRepository().create(image, currentFolder!);
     currentFolder?.addImage(image);
+    notifyListeners();
+  }
+
+  void imageUpdated() {
     notifyListeners();
   }
 }

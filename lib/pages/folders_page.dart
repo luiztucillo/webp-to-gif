@@ -36,7 +36,8 @@ class FoldersPage extends StatelessWidget {
                     ? ShareButton(
                         label: 'Compartilhar todos',
                         files: folder.images
-                            .map((ImageModel img) => img.file)
+                            .where((ImageModel img) => img.file != null)
+                            .map((ImageModel img) => img.file!)
                             .toList(),
                       )
                     : Container(),
@@ -46,7 +47,8 @@ class FoldersPage extends StatelessWidget {
                         color: Colors.green[300],
                         label: 'Compartilhar selecionadas',
                         files: selectionModeProvider.selectedItems
-                            .map((ImageModel img) => img.file)
+                            .where((ImageModel img) => img.file != null)
+                            .map((ImageModel img) => img.file!)
                             .toList(),
                       )
                     : Container(),
@@ -68,9 +70,7 @@ class FoldersPage extends StatelessWidget {
               ],
             ),
             floatingActionButton: FloatingActionButton(
-              onPressed: folderProvider.loading
-                  ? null
-                  : () async {
+              onPressed: () async {
                       FilePickerResult? result =
                           await FilePicker.platform.pickFiles(
                         type: FileType.custom,
@@ -94,11 +94,7 @@ class FoldersPage extends StatelessWidget {
                         folderProvider.setLoading(false);
                       }
                     },
-              child: folderProvider.loading
-                  ? const CircularProgressIndicator(
-                      color: Colors.white,
-                    )
-                  : const Icon(Icons.add),
+              child: const Icon(Icons.add),
             ), // This trailing comma makes auto-formatting nicer for build methods.
           ),
         ),

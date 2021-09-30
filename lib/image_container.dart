@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:webp_to_gif/loader.dart';
 import 'package:webp_to_gif/providers/selection_mode_provider.dart';
 
 import 'models/image_model.dart';
@@ -21,16 +22,21 @@ class ImageContainer extends StatelessWidget {
       builder: (context, selectionModeProvider, widget) => Stack(
         children: [
           TextButton(
-            child: Image.file(image.file),
+            child: image.file == null ? const Loader() : Image.file(image.file!),
             onLongPress: () {
               selectionModeProvider.toggleSelection(image);
             },
             onPressed: () {
-              if (selectionModeProvider.inSelectionMode) {
+              if (image.file == null) {
+                return;
+              }
+
+              if (selectionModeProvider.inSelectionMode ) {
                 selectionModeProvider.toggleSelection(image);
                 return;
               }
-              Share.shareFiles([image.file.path]);
+
+              Share.shareFiles([image.file!.path]);
             },
           ),
           IgnorePointer(
