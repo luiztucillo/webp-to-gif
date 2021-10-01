@@ -20,51 +20,58 @@ class ImageContainer extends StatelessWidget {
     return Consumer<SelectionModeProvider>(
       builder: (context, selectionModeProvider, widget) => Stack(
         children: [
-          TextButton(
-            child: Center(
-              child: Image.file(image.file),
-            ),
-            onLongPress: () {
-              if (!image.converted) {
-                return;
-              }
-
-              selectionModeProvider.toggleSelection(image);
-            },
-            onPressed: () {
-              if (!image.converted) {
-                return;
-              }
-
-              if (selectionModeProvider.inSelectionMode ) {
-                selectionModeProvider.toggleSelection(image);
-                return;
-              }
-
-              Share.shareFiles([image.file.path]);
-            },
-          ),
-          image.converted ? const IgnorePointer() : const IgnorePointer(
-            child: Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 8,
-                color: Colors.white,
-                backgroundColor: Colors.blue,
+          Container(
+            decoration: ShapeDecoration(
+              color:
+      isSelected ? Colors.blue.withAlpha(50) : Colors.grey[100],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
               ),
             ),
           ),
+          Opacity(
+            opacity: image.converted ? 1 : 0.3,
+            child: TextButton(
+              child: Center(
+                child: Image.file(image.file),
+              ),
+              onLongPress: () {
+                if (!image.converted) {
+                  return;
+                }
+
+                selectionModeProvider.toggleSelection(image);
+              },
+              onPressed: () {
+                if (!image.converted) {
+                  return;
+                }
+
+                if (selectionModeProvider.inSelectionMode) {
+                  selectionModeProvider.toggleSelection(image);
+                  return;
+                }
+
+                Share.shareFiles([image.file.path]);
+              },
+            ),
+          ),
+          image.converted
+              ? const IgnorePointer()
+              : const IgnorePointer(
+                  child: LinearProgressIndicator(),
+                ),
           IgnorePointer(
             child: Container(
               padding: const EdgeInsets.all(8),
-              color: isSelected ? Colors.blue.withAlpha(50) : Colors.transparent,
               alignment: Alignment.bottomRight,
               child: !isSelected
                   ? Container()
                   : const Icon(
-                Icons.check_box,
-                size: 30,
-                color: Colors.blue,
-              ),
+                      Icons.check_box,
+                      size: 30,
+                      color: Colors.blue,
+                    ),
             ),
           ),
         ],

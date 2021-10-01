@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ShareButton extends StatelessWidget {
-  final String label;
+  final String heroTag;
   final List<File> files;
   final Color? color;
 
   const ShareButton({
     Key? key,
-    required this.label,
     required this.files,
+    required this.heroTag,
     this.color,
   }) : super(key: key);
 
@@ -19,6 +19,7 @@ class ShareButton extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(8),
         child: FloatingActionButton(
+          heroTag: heroTag,
           backgroundColor: Colors.green,
           child: const Icon(Icons.share),
           onPressed: () {

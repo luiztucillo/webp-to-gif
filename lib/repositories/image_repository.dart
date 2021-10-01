@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
-import 'package:webp_to_gif/services/db_service.dart';
 
 class ImageRepository {
   static final ImageRepository _instance =
@@ -12,56 +13,34 @@ class ImageRepository {
 
   ImageRepository._internalConstructor();
 
-  final String table = 'images';
-
-  Future<int?> create(ImageModel image, FolderModel folder) async {
-    int? id = await DbService().insert(table, image.toMap());
-
-    if (id == null) {
-      return null;
-    }
-
-    return id;
-  }
+  Future<int?> create(ImageModel image, FolderModel folder) async {}
 
   Future<List<ImageModel>> list(FolderModel folder) async {
-    var maped = await DbService().query(
-      table,
-      ['id', 'file', 'converted', 'folder_id'],
-      where: 'folder_id = ?',
-      whereArgs: [folder.id],
-    );
+    final Directory _appDirFolder = Directory(folder.path);
 
-    if (maped == null) {
-      return [];
+    List<FileSystemEntity> list = _appDirFolder.listSync();
+
+    List<ImageModel> imageList = [];
+
+    for (var img in list) {
+      if (FileSystemEntity.isFileSync(img.path)) {
+        imageList.add(ImageModel(
+          folder: folder,
+          file: File(img.path),
+          converted: true,
+        ));
+      }
     }
 
-    List<ImageModel> result = [];
-
-    for (var map in maped) {
-      result.add(ImageModel.fromMap(map));
-    }
-
-    return result;
+    return imageList;
   }
 
-  Future delete(FolderModel folder) async {
-    if (folder.id == null) {
-      return null;
-    }
-
-    return await DbService().deleteWhere(table, 'folder_id = ?', [folder.id]);
-  }
-
-  Future<bool> deleteImage(ImageModel img) async {
-    if (img.id == null) {
+  Future<bool> delete(ImageModel img) async {
+    try {
+      img.file.deleteSync();
+      return true;
+    } catch (e) {
       return false;
     }
-
-    return await DbService().delete(table, img.id!);
-  }
-
-  Future<bool> update(ImageModel img) async {
-    return await DbService().update(table, img.toMap());
   }
 }

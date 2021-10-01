@@ -1,10 +1,11 @@
-import 'dart:math';
-
+import 'package:webp_to_gif/components/folder_list_item.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
-import 'package:webp_to_gif/pages/folders_page.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:webp_to_gif/services/image_converter.dart';
+
+import 'folders_page.dart';
 
 class MyHomePage extends StatelessWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class MyHomePage extends StatelessWidget {
       create: (BuildContext context) => FoldersProvider(),
       child: Consumer<FoldersProvider>(
         builder:
-            (BuildContext context, FoldersProvider folders, Widget? child) {
+            (BuildContext context, FoldersProvider folderProvider, Widget? child) {
           return Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
@@ -26,53 +27,24 @@ class MyHomePage extends StatelessWidget {
                 Expanded(
                   child: Center(
                     child: ListView(
-                      children: folders.items
-                          .map(
-                            (FolderModel folder) => Container(
-                              key: Key(folder.id.toString()),
-                              padding: const EdgeInsets.all(8),
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  backgroundColor: Colors.blue[50],
-                                ),
+                      children: folderProvider.list
+                          .map((FolderModel folder) => FolderListItem(
+                                folder: folder,
                                 onPressed: () async {
                                   await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => FoldersPage(
-                                        folder: folder,
-                                      ),
+                                      builder: (context) =>
+                                          FoldersPage(folder: folder),
                                     ),
                                   );
+                                  folderProvider.changeFolder(null);
+                                  ImageConverter().clearQueue();
                                 },
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.folder,
-                                      color: folder.color,
-                                      size: 30,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Text(
-                                      folder.name,
-                                      style: const TextStyle(fontSize: 16),
-                                    ),
-                                    Expanded(child: Container()),
-                                    TextButton(
-                                      onPressed: () async {
-                                        await folders.remove(folder);
-                                      },
-                                      child: const Icon(
-                                        Icons.delete,
-                                        size: 30,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          )
+                                onDeletePressed: () async {
+                                  await folderProvider.remove(folder);
+                                },
+                              ))
                           .toList(),
                     ),
                   ),
@@ -86,16 +58,12 @@ class MyHomePage extends StatelessWidget {
                   context: context,
                   builder: (context) {
                     return AlertDialog(
-                      title: const Text('Qual o nome da pasta?'),
+                      title: const Text('Nome da pasta?'),
                       content: TextField(
                         controller: controller,
                         decoration: const InputDecoration(),
                         onSubmitted: (String value) {
-                          folders.add(FolderModel(
-                            name: value,
-                            color: Colors.primaries[
-                                Random().nextInt(Colors.primaries.length)],
-                          ));
+                          folderProvider.create(value);
                           Navigator.pop(context);
                         },
                       ),

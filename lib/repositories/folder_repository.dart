@@ -1,8 +1,11 @@
-import 'package:webp_to_gif/models/folder_model.dart';
-import 'package:webp_to_gif/services/db_service.dart';
+import 'dart:io';
 
-class FolderRepository{
-  static final FolderRepository _instance = FolderRepository._internalConstructor();
+import 'package:path_provider/path_provider.dart';
+import 'package:webp_to_gif/models/folder_model.dart';
+
+class FolderRepository {
+  static final FolderRepository _instance =
+      FolderRepository._internalConstructor();
 
   factory FolderRepository() {
     return _instance;
@@ -12,47 +15,56 @@ class FolderRepository{
 
   final String table = 'folders';
 
-  Future<int?> create(FolderModel folder) async {
-    int? id = await DbService().insert(table, folder.toMap());
-
-    if (id == null) {
-      return null;
-    }
-
-    folder.id = id;
-
-    return id;
+  Future<String> _basePath() async {
+    return (await getApplicationDocumentsDirectory()).path + '/app_folders';
   }
 
-  Future<bool?> update(FolderModel folder) async {
-    if (folder.id == null) {
-      return null;
+  Future<FolderModel> create(String name) async {
+    final Directory _appDir = Directory('${await _basePath()}/$name/');
+
+    if (await _appDir.exists()) {
+      return FolderModel(
+        name: name,
+        path: _appDir.path,
+      );
     }
 
-    return await DbService().update(table, folder.toMap());
+    final Directory _appDirNew = await _appDir.create(recursive: true);
+
+    return FolderModel(
+      name: name,
+      path: _appDirNew.path,
+    );
   }
 
-  Future<bool?> delete(FolderModel folder) async {
-    if (folder.id == null) {
-      return null;
-    }
+  Future<bool> delete(FolderModel folder) async {
+    final Directory _appDirFolder =
+        Directory('${await _basePath()}/${folder.name}/');
 
-    return await DbService().delete(table, folder.id!);
+    try {
+      _appDirFolder.delete(recursive: true);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<List<FolderModel>> list() async {
-    var maped = await DbService().query(table, ['id', 'name', 'color']);
+    final Directory _appDirFolder = Directory(await _basePath());
 
-    if (maped == null) {
-      return [];
+    List<FileSystemEntity> list = _appDirFolder.listSync();
+
+    List<FolderModel> folderList = [];
+
+    for (var fdr in list) {
+      if (FileSystemEntity.isDirectorySync(fdr.path)) {
+        folderList.add(FolderModel(
+          name: fdr.path.split('/').last,
+          path: fdr.path,
+        ));
+      }
     }
 
-    List<FolderModel> result = [];
-
-    for (var map in maped) {
-      result.add(FolderModel.fromMap(map));
-    }
-
-    return result;
+    return folderList;
   }
 }

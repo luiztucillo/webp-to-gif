@@ -5,9 +5,7 @@ class SelectionModeProvider extends ChangeNotifier {
 
   final List<ImageModel> _selectedItems = [];
 
-  bool _inSelectionMode = false;
-
-  bool get inSelectionMode => _inSelectionMode;
+  bool get inSelectionMode => _selectedItems.isNotEmpty;
 
   List<ImageModel> get selectedItems => _selectedItems;
 
@@ -22,20 +20,17 @@ class SelectionModeProvider extends ChangeNotifier {
   }
 
   void removeSelected() {
-    for (var img in _selectedItems) {
-      img.file.delete();
-    }
+    _selectedItems.clear();
+    notifyListeners();
   }
 
   void _addToSelection(ImageModel image) {
     _selectedItems.add(image);
-    _inSelectionMode = _selectedItems.isNotEmpty;
     notifyListeners();
   }
 
   void _removeFromSelection(ImageModel image) {
     _selectedItems.remove(image);
-    _inSelectionMode = _selectedItems.isNotEmpty;
     notifyListeners();
   }
 }

@@ -1,124 +1,99 @@
+import 'dart:io';
+
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:flutter/material.dart';
 import 'package:webp_to_gif/models/image_model.dart';
 import 'package:webp_to_gif/repositories/folder_repository.dart';
 import 'package:webp_to_gif/repositories/image_repository.dart';
+import 'package:webp_to_gif/services/image_converter.dart';
 
 class FoldersProvider extends ChangeNotifier {
   final List<FolderModel> _items = [];
-  bool loading = false;
-  FolderModel? currentFolder;
+  final List<ImageModel> _convertingList = [];
 
-  FoldersProvider({this.currentFolder}) {
+  FolderModel? _currentFolder;
+  List<ImageModel>? _currentImages;
+  bool _converting = false;
+
+  FolderModel? get currentFolder => _currentFolder;
+  List<ImageModel>? get currentImages => _currentImages;
+  bool get converting => _converting;
+
+  List<FolderModel> get list => _items;
+
+  FoldersProvider({FolderModel? folder}) {
     init();
-  }
 
-  init() async {
-    _items.addAll(await FolderRepository().list());
-
-    if (currentFolder != null) {
-      currentFolder!.resetImages();
-      var images = await ImageRepository().list(currentFolder!);
-
-      for (ImageModel image in images) {
-        currentFolder!.addImage(image);
-      }
+    if (folder != null) {
+      changeFolder(folder);
     }
+  }
 
+  Future<void> init() async {
+    _items.addAll(await FolderRepository().list());
     notifyListeners();
   }
 
-  List<FolderModel> get items => _items;
-
-  void setLoading(bool isLoading) {
-    loading = isLoading;
-    notifyListeners();
-  }
-
-  void add(FolderModel folder) async {
-    await FolderRepository().create(folder);
-    _items.add(folder);
+  Future<void> create(String name) async {
+    _items.add(await FolderRepository().create(name));
     notifyListeners();
   }
 
   Future<void> remove(FolderModel folder) async {
-    for (FolderModel fdr in _items) {
-      if (fdr.id == folder.id) {
-        for (ImageModel image in folder.images) {
-          try {
-            image.file.delete();
-          } catch (e) {
-            //
-          }
-        }
-
-        await ImageRepository().delete(folder);
-
-        folder.resetImages();
-
-        await FolderRepository().delete(fdr);
-
-        _items.remove(fdr);
-
-        break;
-      }
-    }
+    await FolderRepository().delete(folder);
+    _items.remove(folder);
     notifyListeners();
   }
 
   Future<void> removeImage(ImageModel image) async {
-    if (currentFolder == null) {
-      return;
-    }
-
-    if (image.folderId != currentFolder!.id) {
-      return;
-    }
-
-    var result = await ImageRepository().deleteImage(image);
-
-    if (result == false) {
-      return;
-    }
-
-    image.file.delete();
-
-    currentFolder!.images.removeWhere((ImageModel img) => img.id == image.id);
-
-    for (FolderModel fdr in _items) {
-      if (fdr.id == currentFolder!.id) {
-        fdr.images.removeWhere((ImageModel img) => img.id == image.id);
-      }
-    }
-
+    await ImageRepository().delete(image);
+    _currentImages?.remove(image);
     notifyListeners();
   }
 
-  void removeAll() {
-    _items.clear();
-    notifyListeners();
+  void changeFolder(FolderModel? folder) async {
+    _currentFolder = folder;
+
+    _currentImages?.clear();
+
+    if (folder != null) {
+      _currentImages = await ImageRepository().list(folder);
+    }
   }
 
-  void addImage(ImageModel image) async {
-    if (currentFolder == null) {
+  Future<void> convert(List<String> pathList) async {
+    if (_currentFolder == null) {
       return;
     }
 
-    var id = await ImageRepository().create(image, currentFolder!);
+    _converting = true;
 
-    if (id != null) {
-      image.id = id;
-      currentFolder!.addImage(image);
+    List<ImageModel> imgModels = [];
+
+    for (String path in pathList) {
+      var mdl = ImageModel(
+        folder: _currentFolder!,
+        file: File(path),
+        converted: false,
+      );
+
+      imgModels.add(mdl);
+      _currentImages!.add(mdl);
     }
 
     notifyListeners();
-  }
 
-  void updateImage(ImageModel image) async {
-    await ImageRepository().update(image);
+    for (var mdl in imgModels) {
+      _convertingList.add(mdl);
+      await ImageConverter().convert(mdl, (ImageModel imageModel) {
+        _convertingList.remove(imageModel);
 
-    if (hasListeners) {
-      notifyListeners();
+        if (_convertingList.isEmpty) {
+          _converting = false;
+        }
+
+        notifyListeners();
+      });
     }
   }
 }
