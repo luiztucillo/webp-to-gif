@@ -52,7 +52,15 @@ class ImageContainer extends StatelessWidget {
                   return;
                 }
 
-                Share.shareFiles([image.file.path]);
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      contentPadding: const EdgeInsets.all(0),
+                      content: Image.file(image.file),
+                    );
+                  },
+                );
               },
             ),
           ),

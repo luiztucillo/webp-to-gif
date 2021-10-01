@@ -50,21 +50,27 @@ class FolderRepository {
   }
 
   Future<List<FolderModel>> list() async {
-    final Directory _appDirFolder = Directory(await _basePath());
+    try {
+      final Directory _appDirFolder = Directory(await _basePath());
 
-    List<FileSystemEntity> list = _appDirFolder.listSync();
+      List<FileSystemEntity> list = _appDirFolder.listSync();
 
-    List<FolderModel> folderList = [];
+      List<FolderModel> folderList = [];
 
-    for (var fdr in list) {
-      if (FileSystemEntity.isDirectorySync(fdr.path)) {
-        folderList.add(FolderModel(
-          name: fdr.path.split('/').last,
-          path: fdr.path,
-        ));
+      for (var fdr in list) {
+        if (FileSystemEntity.isDirectorySync(fdr.path)) {
+          folderList.add(FolderModel(
+            name: fdr.path
+                .split('/')
+                .last,
+            path: fdr.path,
+          ));
+        }
       }
-    }
 
-    return folderList;
+      return folderList;
+    }  catch(e) {
+      return [];
+    }
   }
 }
