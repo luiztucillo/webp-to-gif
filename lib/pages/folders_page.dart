@@ -1,10 +1,15 @@
 import 'dart:io';
 
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/delete_button.dart';
 import 'package:webp_to_gif/components/share_button.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
+import 'package:webp_to_gif/models/image_types/gif.dart';
+import 'package:webp_to_gif/models/image_types/image_type.dart';
+import 'package:webp_to_gif/models/image_types/jpg.dart';
+import 'package:webp_to_gif/models/image_types/png.dart';
+import 'package:webp_to_gif/models/image_types/webp.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -79,10 +84,10 @@ class _FoldersPageState extends State<FoldersPage> {
                 ),
                 body: Column(
                   children: [
-                    ads.gridAd != null
+                    ads.gridAd
                         ? SizedBox(
                             height: 100,
-                            child: AdWidget(ad: ads.gridAd),
+                            child: ads.gridWidget(),
                           )
                         : Container(),
                     Expanded(
@@ -160,9 +165,24 @@ class _FoldersPageState extends State<FoldersPage> {
     bts.add(FloatingActionButton(
       heroTag: 'add-button',
       onPressed: () async {
+        final ImageType? type = await showOptionsDialog<ImageType>(
+          context: context,
+          title: 'Selecione o tipo dos arquivos que deseja importar',
+          options: {
+            'GIF': Gif(),
+            'WEBP': Webp(),
+            'PNG': Png(),
+            'JPG': Jpg(),
+          },
+        );
+
+        if (type == null) {
+          return;
+        }
+
         FilePickerResult? result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
-          allowedExtensions: ['webp'],
+          allowedExtensions: [type.extension()],
           allowMultiple: true,
         );
 
@@ -170,8 +190,19 @@ class _FoldersPageState extends State<FoldersPage> {
           return;
         }
 
-        ads.showConvertingAd();
-        folderProvider.convert(result.paths.whereType<String>().toList());
+        for (String path in result.paths.whereType<String>().toList()) {
+          var mdl = ImageModel(
+            folder: folderProvider.currentFolder!,
+            file: File(path),
+            converted: false,
+            imageType: type,
+          );
+
+          folderProvider.currentImages!.add(mdl);
+        }
+
+        // ads.showConvertingAd();
+        // folderProvider.convert(result.paths.whereType<String>().toList());
       },
       child: const Icon(Icons.add),
     ));

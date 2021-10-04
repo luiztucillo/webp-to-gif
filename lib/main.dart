@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:webp_to_gif/pages/my_home_page.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:webp_to_gif/theme.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
+  // WidgetsFlutterBinding.ensureInitialized();
+  // MobileAds.instance.initialize();
 
   runApp(const MyApp());
 }
@@ -17,9 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: AppTheme.getTheme(),
       home: const MyHomePage(),
     );
   }

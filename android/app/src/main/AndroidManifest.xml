@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.images">
+    package="br.com.luiztucillo.webptogif">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -7,11 +7,11 @@
     <application
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"
-        android:label="WebPTOGIF">
+        android:label="WebPToGIF">
 
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-4138453881791255~6971715490"/>
+<!--        <meta-data-->
+<!--            android:name="br.google.android.gms.ads.APPLICATION_ID"-->
+<!--            android:value="ca-app-pub-4138453881791255~6971715490"/>-->
 
         <activity
             android:name=".MainActivity"

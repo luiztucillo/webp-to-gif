@@ -19,14 +19,11 @@ class FolderRepository {
     return (await getApplicationDocumentsDirectory()).path + '/app_folders';
   }
 
-  Future<FolderModel> create(String name) async {
+  Future<FolderModel?> create(String name) async {
     final Directory _appDir = Directory('${await _basePath()}/$name/');
 
     if (await _appDir.exists()) {
-      return FolderModel(
-        name: name,
-        path: _appDir.path,
-      );
+      return null;
     }
 
     final Directory _appDirNew = await _appDir.create(recursive: true);

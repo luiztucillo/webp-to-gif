@@ -22,8 +22,7 @@ class ImageContainer extends StatelessWidget {
         children: [
           Container(
             decoration: ShapeDecoration(
-              color:
-      isSelected ? Colors.blue.withAlpha(50) : Colors.grey[100],
+              color: isSelected ? Colors.blue.withAlpha(50) : Colors.grey[100],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(6),
               ),
@@ -80,6 +79,17 @@ class ImageContainer extends StatelessWidget {
                       size: 30,
                       color: Colors.blue,
                     ),
+            ),
+          ),
+          IgnorePointer(
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.bottomLeft,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                color: Colors.white.withAlpha(200),
+                child: Text(image.imageType.extension().toUpperCase()),
+              ),
             ),
           ),
         ],

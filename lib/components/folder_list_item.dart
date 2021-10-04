@@ -15,26 +15,24 @@ class FolderListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      key: Key(folder.path),
-      padding: const EdgeInsets.all(8),
-      child: TextButton(
-        style: TextButton.styleFrom(backgroundColor: Colors.blue[50]),
-        onPressed: onPressed,
+    return TextButton(
+      onPressed: onPressed,
+      child: Card(
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Icons.folder, size: 30),
-            const SizedBox(width: 16),
-            Text(
-              folder.name,
-              style: const TextStyle(fontSize: 16),
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Expanded(
+              child: ListTile(
+                leading: const Icon(Icons.folder),
+                title: Text(folder.name,),
+                subtitle: const Text('50 items'),
+              ),
             ),
-            Expanded(child: Container()),
             TextButton(
+              child: const Icon(Icons.delete),
               onPressed: onDeletePressed,
-              child: const Icon(Icons.delete, size: 30),
             ),
+            const SizedBox(width: 8),
           ],
         ),
       ),

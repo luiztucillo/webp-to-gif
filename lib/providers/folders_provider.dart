@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:mime_type/mime_type.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:flutter/material.dart';
 import 'package:webp_to_gif/models/image_model.dart';
+import 'package:webp_to_gif/models/image_types/webp.dart';
 import 'package:webp_to_gif/repositories/folder_repository.dart';
 import 'package:webp_to_gif/repositories/image_repository.dart';
 import 'package:webp_to_gif/services/image_converter.dart';
@@ -35,7 +37,12 @@ class FoldersProvider extends ChangeNotifier {
   }
 
   Future<void> create(String name) async {
-    _items.add(await FolderRepository().create(name));
+    final folder = await FolderRepository().create(name);
+
+    if (folder != null) {
+      _items.add(folder);
+    }
+
     notifyListeners();
   }
 
@@ -75,6 +82,7 @@ class FoldersProvider extends ChangeNotifier {
         folder: _currentFolder!,
         file: File(path),
         converted: false,
+        imageType: Webp(),
       );
 
       imgModels.add(mdl);

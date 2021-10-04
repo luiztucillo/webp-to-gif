@@ -1,3 +1,4 @@
+import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/folder_list_item.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
@@ -15,8 +16,8 @@ class MyHomePage extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (BuildContext context) => FoldersProvider(),
       child: Consumer<FoldersProvider>(
-        builder:
-            (BuildContext context, FoldersProvider folderProvider, Widget? child) {
+        builder: (BuildContext context, FoldersProvider folderProvider,
+            Widget? child) {
           return Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
@@ -53,21 +54,13 @@ class MyHomePage extends StatelessWidget {
             ),
             floatingActionButton: FloatingActionButton(
               onPressed: () async {
-                TextEditingController controller = TextEditingController();
-                showDialog(
+                showInputDialog(
                   context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('Nome da pasta?'),
-                      content: TextField(
-                        controller: controller,
-                        decoration: const InputDecoration(),
-                        onSubmitted: (String value) {
-                          folderProvider.create(value);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    );
+                  title: 'Criar pasta',
+                  helperText: 'Nome da pasta',
+                  onSubmitted: (String value) {
+                    folderProvider.create(value);
+                    Navigator.pop(context);
                   },
                 );
               },
