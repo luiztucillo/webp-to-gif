@@ -33,22 +33,9 @@ class ImageConverter {
   ImageConverter._internalConstructor();
 
   final Queue<QueueItem> queue = Queue();
+  ImageModel? converting;
 
   bool running = false;
-
-  Isolate? _isolate;
-
-  void clearQueue() {
-    if (running) {
-      running = false;
-    }
-
-    if (_isolate != null) {
-      _isolate!.kill();
-    }
-
-    queue.clear();
-  }
 
   Future<void> convert(
     ImageModel imgModel,
@@ -81,16 +68,16 @@ class ImageConverter {
 
     running = true;
     QueueItem queueItem = queue.removeFirst();
+    converting = queueItem.imageModel;
 
     var receivePort = ReceivePort();
 
-    _isolate = await Isolate.spawn(
+    await Isolate.spawn(
       _convertIsolate,
       DecodeParam(queueItem.imageModel, receivePort.sendPort),
     );
 
     File? convertedFile = await receivePort.first as File?;
-    _isolate = null;
 
     if (convertedFile != null) {
       queueItem.imageModel.file = convertedFile;
@@ -98,6 +85,8 @@ class ImageConverter {
       queueItem.imageModel.imageType = Gif();
       queueItem.onConversionDone(queueItem.imageModel);
     }
+
+    converting = null;
 
     _exec();
   }

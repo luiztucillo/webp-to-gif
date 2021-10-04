@@ -4,7 +4,6 @@ import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:webp_to_gif/services/image_converter.dart';
 
 import 'folders_page.dart';
 
@@ -40,7 +39,6 @@ class MyHomePage extends StatelessWidget {
                                     ),
                                   );
                                   folderProvider.changeFolder(null);
-                                  ImageConverter().clearQueue();
                                 },
                                 onDeletePressed: () async {
                                   await folderProvider.remove(folder);

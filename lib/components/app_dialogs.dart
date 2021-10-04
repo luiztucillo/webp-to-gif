@@ -59,12 +59,19 @@ Future<T?> showOptionsDialog<T>({
         title: Text(title),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: options.entries.map((entry) {
-            return TextButton(
-              child: Text(entry.key),
-              onPressed: () {
-                Navigator.pop(context, entry.value);
-              },
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: ElevatedButton(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text(entry.key),
+                ),
+                onPressed: () {
+                  Navigator.pop(context, entry.value);
+                },
+              ),
             );
           }).toList(),
         ),

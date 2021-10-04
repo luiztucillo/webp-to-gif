@@ -7,8 +7,6 @@ import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
 import 'package:webp_to_gif/models/image_types/gif.dart';
 import 'package:webp_to_gif/models/image_types/image_type.dart';
-import 'package:webp_to_gif/models/image_types/jpg.dart';
-import 'package:webp_to_gif/models/image_types/png.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -68,19 +66,6 @@ class _FoldersPageState extends State<FoldersPage> {
               return Scaffold(
                 appBar: AppBar(
                   title: Text(widget.folder.name),
-                  leading: IconButton(
-                    icon: const Icon(Icons.navigate_before),
-                    onPressed: () {
-                      if (folderProvider.converting) {
-                        const snackBar = SnackBar(
-                            content: Text(
-                                'Você não pode voltar até terminar de converter as imagens'));
-                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                        return;
-                      }
-                      Navigator.of(context).pop();
-                    },
-                  ),
                 ),
                 body: Column(
                   children: [

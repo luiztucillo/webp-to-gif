@@ -29,7 +29,7 @@ class ImageContainer extends StatelessWidget {
             ),
           ),
           Opacity(
-            opacity: image.converted ? 1 : 0.3,
+            opacity: image.converted ? 1 : 0.2,
             child: TextButton(
               child: Center(
                 child: Image.file(image.file),
@@ -54,9 +54,39 @@ class ImageContainer extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (context) {
-                    return AlertDialog(
-                      contentPadding: const EdgeInsets.all(0),
-                      content: Image.file(image.file),
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Material(
+                        color: Colors.transparent,
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Center(
+                            child: Stack(
+                              alignment: Alignment.bottomRight,
+                              children: [
+                                Image.file(
+                                  image.file,
+                                ),
+                                TextButton(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.share),
+                                  ),
+                                  onPressed: () {
+                                    Share.shareFiles([image.file.path]);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     );
                   },
                 );
@@ -66,11 +96,11 @@ class ImageContainer extends StatelessWidget {
           image.converted
               ? const IgnorePointer()
               : const IgnorePointer(
-                  child: LinearProgressIndicator(),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
           IgnorePointer(
             child: Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
               alignment: Alignment.bottomRight,
               child: !isSelected
                   ? Container()
@@ -83,12 +113,18 @@ class ImageContainer extends StatelessWidget {
           ),
           IgnorePointer(
             child: Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
               alignment: Alignment.bottomLeft,
               child: Container(
-                padding: const EdgeInsets.all(8),
-                color: Colors.white.withAlpha(200),
-                child: Text(image.imageType.extension().toUpperCase()),
+                padding: const EdgeInsets.all(5),
+                child: Text(
+                  image.imageType.extension().toUpperCase(),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(200),
+                  borderRadius: const BorderRadius.all(Radius.circular(5)),
+                ),
               ),
             ),
           ),

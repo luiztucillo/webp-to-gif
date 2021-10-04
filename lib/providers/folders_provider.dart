@@ -1,10 +1,6 @@
-import 'dart:io';
-
-import 'package:mime_type/mime_type.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:flutter/material.dart';
 import 'package:webp_to_gif/models/image_model.dart';
-import 'package:webp_to_gif/models/image_types/webp.dart';
 import 'package:webp_to_gif/repositories/folder_repository.dart';
 import 'package:webp_to_gif/repositories/image_repository.dart';
 import 'package:webp_to_gif/services/image_converter.dart';
@@ -12,6 +8,7 @@ import 'package:webp_to_gif/services/image_converter.dart';
 class FoldersProvider extends ChangeNotifier {
   final List<FolderModel> _items = [];
   final List<ImageModel> _convertingList = [];
+  bool _isDisposed = false;
 
   FolderModel? _currentFolder;
   List<ImageModel>? _currentImages;
@@ -33,7 +30,7 @@ class FoldersProvider extends ChangeNotifier {
 
   Future<void> init() async {
     _items.addAll(await FolderRepository().list());
-    notifyListeners();
+    customNotifyListeners();
   }
 
   Future<void> create(String name) async {
@@ -43,19 +40,19 @@ class FoldersProvider extends ChangeNotifier {
       _items.add(folder);
     }
 
-    notifyListeners();
+    customNotifyListeners();
   }
 
   Future<void> remove(FolderModel folder) async {
     await FolderRepository().delete(folder);
     _items.remove(folder);
-    notifyListeners();
+    customNotifyListeners();
   }
 
   Future<void> removeImage(ImageModel image) async {
     await ImageRepository().delete(image);
     _currentImages?.remove(image);
-    notifyListeners();
+    customNotifyListeners();
   }
 
   void changeFolder(FolderModel? folder) async {
@@ -65,6 +62,16 @@ class FoldersProvider extends ChangeNotifier {
 
     if (folder != null) {
       _currentImages = await ImageRepository().list(folder);
+
+      if (ImageConverter().converting?.folder.path == folder.path) {
+        _currentImages?.add(ImageConverter().converting!);
+      }
+
+      for (QueueItem queueItem in ImageConverter().queue) {
+        if (queueItem.imageModel.folder.path == folder.path) {
+          _currentImages?.add(queueItem.imageModel);
+        }
+      }
     }
   }
 
@@ -79,7 +86,7 @@ class FoldersProvider extends ChangeNotifier {
       _currentImages!.add(img);
     }
 
-    notifyListeners();
+    customNotifyListeners();
 
     for (var mdl in imgModels) {
       _convertingList.add(mdl);
@@ -91,8 +98,20 @@ class FoldersProvider extends ChangeNotifier {
           _converting = false;
         }
 
-        notifyListeners();
+        customNotifyListeners();
       });
     }
+  }
+
+  customNotifyListeners() {
+    if(!_isDisposed){
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _isDisposed = true;
   }
 }
