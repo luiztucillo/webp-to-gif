@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:image/image.dart';
+import 'package:webp_to_gif/models/image_types/gif.dart';
 
 import '../models/image_model.dart';
 
@@ -51,8 +52,17 @@ class ImageConverter {
 
   Future<void> convert(
     ImageModel imgModel,
-      ConversionCallback onConversionDone,
+    ConversionCallback onConversionDone,
   ) async {
+    if (imgModel.imageType is Gif) {
+      var name = '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
+      imgModel.file.copy(name);
+      imgModel.file = File(name);
+      imgModel.converted = true;
+      onConversionDone(imgModel);
+      return;
+    }
+
     queue.add(QueueItem(
       imageModel: imgModel,
       onConversionDone: onConversionDone,
@@ -85,6 +95,7 @@ class ImageConverter {
     if (convertedFile != null) {
       queueItem.imageModel.file = convertedFile;
       queueItem.imageModel.converted = true;
+      queueItem.imageModel.imageType = Gif();
       queueItem.onConversionDone(queueItem.imageModel);
     }
 

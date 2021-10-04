@@ -68,31 +68,22 @@ class FoldersProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> convert(List<String> pathList) async {
+  Future<void> convert(List<ImageModel> imgModels) async {
     if (_currentFolder == null) {
       return;
     }
 
     _converting = true;
 
-    List<ImageModel> imgModels = [];
-
-    for (String path in pathList) {
-      var mdl = ImageModel(
-        folder: _currentFolder!,
-        file: File(path),
-        converted: false,
-        imageType: Webp(),
-      );
-
-      imgModels.add(mdl);
-      _currentImages!.add(mdl);
+    for (ImageModel img in imgModels) {
+      _currentImages!.add(img);
     }
 
     notifyListeners();
 
     for (var mdl in imgModels) {
       _convertingList.add(mdl);
+
       await ImageConverter().convert(mdl, (ImageModel imageModel) {
         _convertingList.remove(imageModel);
 

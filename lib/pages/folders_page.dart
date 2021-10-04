@@ -171,8 +171,8 @@ class _FoldersPageState extends State<FoldersPage> {
           options: {
             'GIF': Gif(),
             'WEBP': Webp(),
-            'PNG': Png(),
-            'JPG': Jpg(),
+            // 'PNG': Png(),
+            // 'JPG': Jpg(),
           },
         );
 
@@ -190,6 +190,7 @@ class _FoldersPageState extends State<FoldersPage> {
           return;
         }
 
+        List<ImageModel> models = [];
         for (String path in result.paths.whereType<String>().toList()) {
           var mdl = ImageModel(
             folder: folderProvider.currentFolder!,
@@ -198,11 +199,11 @@ class _FoldersPageState extends State<FoldersPage> {
             imageType: type,
           );
 
-          folderProvider.currentImages!.add(mdl);
+          models.add(mdl);
         }
 
-        // ads.showConvertingAd();
-        // folderProvider.convert(result.paths.whereType<String>().toList());
+        ads.showConvertingAd();
+        folderProvider.convert(models);
       },
       child: const Icon(Icons.add),
     ));
