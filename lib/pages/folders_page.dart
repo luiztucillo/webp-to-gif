@@ -69,12 +69,13 @@ class _FoldersPageState extends State<FoldersPage> {
                 ),
                 body: Column(
                   children: [
-                    ads.gridAd
-                        ? SizedBox(
-                            height: 100,
-                            child: ads.gridWidget(),
-                          )
-                        : Container(),
+                    Container(
+                      color: Colors.grey.withAlpha(100),
+                      child: SizedBox(
+                        height: 100,
+                        child: ads.gridWidget(),
+                      ),
+                    ),
                     Expanded(
                       child: GridView.count(
                         crossAxisCount: 3,
