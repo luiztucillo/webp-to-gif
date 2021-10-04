@@ -84,6 +84,9 @@ class _FoldersPageState extends State<FoldersPage> {
                             .map((ImageModel image) => ImageContainer(
                                   image: image,
                                   isSelected: image.isSelected(),
+                                  onDelete: () {
+                                    folderProvider.removeImage(image);
+                                  },
                                 ))
                             .toList(),
                       ),

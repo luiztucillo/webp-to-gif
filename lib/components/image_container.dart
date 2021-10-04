@@ -8,11 +8,13 @@ import '../models/image_model.dart';
 class ImageContainer extends StatelessWidget {
   final ImageModel image;
   final bool isSelected;
+  final  VoidCallback onDelete;
 
   const ImageContainer({
     Key? key,
     required this.image,
     required this.isSelected,
+    required this.onDelete,
   }) : super(key: key);
 
   @override
@@ -69,18 +71,51 @@ class ImageContainer extends StatelessWidget {
                                 Image.file(
                                   image.file,
                                 ),
-                                TextButton(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    TextButton(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.delete),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        onDelete();
+                                      },
                                     ),
-                                    child: const Icon(Icons.share),
-                                  ),
-                                  onPressed: () {
-                                    Share.shareFiles([image.file.path]);
-                                  },
+                                    TextButton(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.share),
+                                      ),
+                                      onPressed: () {
+                                        Share.shareFiles([image.file.path]);
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
