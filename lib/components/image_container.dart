@@ -27,7 +27,7 @@ class ImageContainer extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: FileImage(image.file),
+                  image: FileImage(image.thumbnail ?? image.file),
                   fit: BoxFit.cover,
                 ),
               ),

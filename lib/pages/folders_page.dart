@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/delete_button.dart';
 import 'package:webp_to_gif/components/share_button.dart';
+import 'package:webp_to_gif/helpers/type.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
 import 'package:webp_to_gif/models/image_types/gif.dart';
@@ -19,14 +21,20 @@ import '../components/image_container.dart';
 
 class FoldersPage extends StatefulWidget {
   final FolderModel folder;
+  final List<SharedMediaFile>? shared;
 
-  const FoldersPage({Key? key, required this.folder}) : super(key: key);
+  const FoldersPage({
+    Key? key,
+    required this.folder,
+    this.shared,
+  }) : super(key: key);
 
   @override
   State<FoldersPage> createState() => _FoldersPageState();
 }
 
 class _FoldersPageState extends State<FoldersPage> {
+  FoldersProvider? _folderProvider;
   Ads ads = Ads();
 
   @override
@@ -42,14 +50,36 @@ class _FoldersPageState extends State<FoldersPage> {
         });
       });
     }
+
+    _init();
+  }
+
+  _init() async {
+    _folderProvider = FoldersProvider();
+
+    await _folderProvider!.changeFolder(widget.folder);
+
+    setState(() {});
+
+    if (widget.shared != null) {
+      _convertShared(_folderProvider!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_folderProvider == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (BuildContext context) {
-          return FoldersProvider(folder: widget.folder);
+          return _folderProvider;
         }),
         ChangeNotifierProvider(create: (context) {
           return SelectionModeProvider();
@@ -198,6 +228,25 @@ class _FoldersPageState extends State<FoldersPage> {
     ));
 
     return bts;
+  }
+
+  _convertShared(FoldersProvider folderProvider) {
+    List<ImageModel> models = [];
+    for (SharedMediaFile file in widget.shared!) {
+      var mdl = ImageModel(
+        folder: folderProvider.currentFolder!,
+        file: File(file.path),
+        converted: false,
+        imageType: Type.getType(file.path),
+        thumbnail:
+            file.thumbnail != null ? File(file.thumbnail!) : File(file.path),
+      );
+
+      models.add(mdl);
+    }
+
+    ads.showConvertingAd();
+    folderProvider.convert(models);
   }
 
   @override

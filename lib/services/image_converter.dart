@@ -2,8 +2,12 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:export_video_frame/export_video_frame.dart';
 import 'package:image/image.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:webp_to_gif/models/image_types/gif.dart';
+import 'package:webp_to_gif/models/image_types/mp4.dart';
+import 'package:webp_to_gif/models/image_types/webp.dart';
 
 import '../models/image_model.dart';
 
@@ -19,8 +23,9 @@ class QueueItem {
 class DecodeParam {
   final ImageModel imageModel;
   final SendPort sendPort;
+  final Animation? animation;
 
-  DecodeParam(this.imageModel, this.sendPort);
+  DecodeParam(this.imageModel, this.sendPort, this.animation);
 }
 
 class ImageConverter {
@@ -42,7 +47,8 @@ class ImageConverter {
     ConversionCallback onConversionDone,
   ) async {
     if (imgModel.imageType is Gif) {
-      var name = '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
+      var name =
+          '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
       imgModel.file.copy(name);
       imgModel.file = File(name);
       imgModel.converted = true;
@@ -70,14 +76,13 @@ class ImageConverter {
     QueueItem queueItem = queue.removeFirst();
     converting = queueItem.imageModel;
 
-    var receivePort = ReceivePort();
+    File? convertedFile;
 
-    await Isolate.spawn(
-      _convertIsolate,
-      DecodeParam(queueItem.imageModel, receivePort.sendPort),
-    );
-
-    File? convertedFile = await receivePort.first as File?;
+    if (queueItem.imageModel.imageType is Webp) {
+      convertedFile = await _convertWebp(queueItem.imageModel);
+    } else if (queueItem.imageModel.imageType is Mp4) {
+      convertedFile = await _convertMp4(queueItem.imageModel);
+    }
 
     if (convertedFile != null) {
       queueItem.imageModel.file = convertedFile;
@@ -92,7 +97,68 @@ class ImageConverter {
   }
 }
 
-void _convertIsolate(DecodeParam param) async {
+Future<File?> _convertMp4(ImageModel imageModel) async {
+  final info = await VideoCompress.getMediaInfo(imageModel.file.path);
+
+  final Animation animation = Animation();
+  animation.width = info.width!;
+  animation.height = info.height!;
+
+  final size = info.duration!.toInt();
+
+  for(int i = 0; i < size; i += 500) {
+    final JpegDecoder decoder = JpegDecoder();
+    final bytes = await VideoCompress.getByteThumbnail(
+        imageModel.file.path,
+        quality: 50,
+        position: size
+    );
+    animation.addFrame(decoder.decodeImage(List.from(bytes!)));
+  }
+
+  var receivePort = ReceivePort();
+
+  await Isolate.spawn(
+    _convertMp4Isolate,
+    DecodeParam(imageModel, receivePort.sendPort, animation),
+  );
+
+  return await receivePort.first as File?;
+}
+
+void _convertMp4Isolate(DecodeParam param) async {
+  var gif = encodeGifAnimation(param.animation!);
+
+  if (gif == null) {
+    param.sendPort.send(null);
+    return;
+  }
+
+  try {
+    var name =
+        '${param.imageModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
+    File file = File(name);
+
+    file.writeAsBytesSync(gif);
+
+    param.sendPort.send(file);
+  } catch (e) {
+    param.sendPort.send(null);
+  }
+}
+
+Future<File?> _convertWebp(ImageModel imageModel) async {
+  var receivePort = ReceivePort();
+
+  await Isolate.spawn(
+    _convertWebpIsolate,
+    DecodeParam(imageModel, receivePort.sendPort, null),
+  );
+
+  return await receivePort.first as File?;
+}
+
+void _convertWebpIsolate(DecodeParam param) async {
   var image = decodeWebPAnimation(param.imageModel.file.readAsBytesSync());
 
   if (image == null) {

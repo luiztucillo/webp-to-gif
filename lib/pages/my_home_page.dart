@@ -31,8 +31,7 @@ class MyHomePage extends StatelessWidget {
                           .map((FolderModel folder) => FolderListItem(
                                 folder: folder,
                                 onPressed: () async {
-                                  await Navigator.push(
-                                    context,
+                                  await Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           FoldersPage(folder: folder),

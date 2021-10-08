@@ -8,6 +8,7 @@ class ImageModel {
   ImageType imageType;
   bool converted;
   File file;
+  File? thumbnail;
 
   bool _selected = false;
 
@@ -16,6 +17,7 @@ class ImageModel {
     required this.file,
     required this.converted,
     required this.imageType,
+    this.thumbnail,
   });
 
   void toggleSelect() {

@@ -20,12 +20,8 @@ class FoldersProvider extends ChangeNotifier {
 
   List<FolderModel> get list => _items;
 
-  FoldersProvider({FolderModel? folder}) {
+  FoldersProvider() {
     init();
-
-    if (folder != null) {
-      changeFolder(folder);
-    }
   }
 
   Future<void> init() async {
@@ -55,7 +51,7 @@ class FoldersProvider extends ChangeNotifier {
     customNotifyListeners();
   }
 
-  void changeFolder(FolderModel? folder) async {
+  Future changeFolder(FolderModel? folder) async {
     _currentFolder = folder;
 
     _currentImages?.clear();
