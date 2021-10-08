@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:export_video_frame/export_video_frame.dart';
+import 'package:flutter_ffmpeg/completed_ffmpeg_execution.dart';
+import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:image/image.dart';
-import 'package:video_compress/video_compress.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:webp_to_gif/models/image_types/gif.dart';
 import 'package:webp_to_gif/models/image_types/mp4.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
@@ -86,6 +88,7 @@ class ImageConverter {
 
     if (convertedFile != null) {
       queueItem.imageModel.file = convertedFile;
+      queueItem.imageModel.thumbnail = convertedFile;
       queueItem.imageModel.converted = true;
       queueItem.imageModel.imageType = Gif();
       queueItem.onConversionDone(queueItem.imageModel);
@@ -98,52 +101,35 @@ class ImageConverter {
 }
 
 Future<File?> _convertMp4(ImageModel imageModel) async {
-  final info = await VideoCompress.getMediaInfo(imageModel.file.path);
 
-  final Animation animation = Animation();
-  animation.width = info.width!;
-  animation.height = info.height!;
+  var name = '${DateTime.now().millisecondsSinceEpoch}.gif';
 
-  final size = info.duration!.toInt();
+  var path = '${imageModel.folder.path}/$name';
+  var tmp = (await getTemporaryDirectory()).path + '/$name';
 
-  for(int i = 0; i < size; i += 500) {
-    final JpegDecoder decoder = JpegDecoder();
-    final bytes = await VideoCompress.getByteThumbnail(
-        imageModel.file.path,
-        quality: 50,
-        position: size
-    );
-    animation.addFrame(decoder.decodeImage(List.from(bytes!)));
-  }
-
-  var receivePort = ReceivePort();
-
-  await Isolate.spawn(
-    _convertMp4Isolate,
-    DecodeParam(imageModel, receivePort.sendPort, animation),
-  );
-
-  return await receivePort.first as File?;
-}
-
-void _convertMp4Isolate(DecodeParam param) async {
-  var gif = encodeGifAnimation(param.animation!);
-
-  if (gif == null) {
-    param.sendPort.send(null);
-    return;
-  }
+  var arguments = [
+    '-i',
+    imageModel.file.path,
+    '-loop',
+    '0',
+    tmp
+  ];
 
   try {
-    var name =
-        '${param.imageModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
-    File file = File(name);
+    FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
+    await _ffmpeg.executeWithArguments(arguments);
 
-    file.writeAsBytesSync(gif);
+    var file = File(tmp);
 
-    param.sendPort.send(file);
+    if (await file.length() == 0) {
+      return null;
+    }
+
+    file.copySync(path);
+
+    return File(path);
   } catch (e) {
-    param.sendPort.send(null);
+    return null;
   }
 }
 

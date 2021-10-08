@@ -9,6 +9,7 @@ import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
 import 'package:webp_to_gif/models/image_types/gif.dart';
 import 'package:webp_to_gif/models/image_types/image_type.dart';
+import 'package:webp_to_gif/models/image_types/mp4.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -190,6 +191,7 @@ class _FoldersPageState extends State<FoldersPage> {
           options: {
             'GIF': Gif(),
             'WEBP': Webp(),
+            'MP4': Mp4(),
             // 'PNG': Png(),
             // 'JPG': Jpg(),
           },

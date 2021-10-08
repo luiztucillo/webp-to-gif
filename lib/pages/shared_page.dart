@@ -53,6 +53,8 @@ class SharedPage extends StatelessWidget {
                             return;
                           }
 
+                          finishShare();
+
                           await Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => FoldersPage(

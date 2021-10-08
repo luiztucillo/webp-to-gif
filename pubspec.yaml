@@ -37,8 +37,7 @@ dependencies:
   mime_type: ^1.0.0
   google_mobile_ads: ^0.13.5
   receive_sharing_intent: ^1.4.5
-  video_compress: ^3.1.0
-  export_video_frame: ^0.0.6
+  flutter_ffmpeg: ^0.4.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
