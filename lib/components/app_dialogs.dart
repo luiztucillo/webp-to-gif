@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 showInputDialog({
   required BuildContext context,
@@ -60,23 +57,58 @@ Future<T?> showOptionsDialog<T>({
     builder: (context) {
       return AlertDialog(
         title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: options.entries.map((entry) {
-            return Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              child: ElevatedButton(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(entry.key),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: options.entries.map((entry) {
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: ElevatedButton(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(entry.key),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context, entry.value);
+                  },
                 ),
-                onPressed: () {
-                  Navigator.pop(context, entry.value);
-                },
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<bool> showConfirmDialog({
+  required BuildContext context,
+  required String title,
+  String? confirmTitle,
+  String? cancelTitle,
+}) async {
+  return await showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton(
+              child: Text(confirmTitle ?? 'Sim'),
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+            ),
+            TextButton(
+              child: Text(cancelTitle ?? 'Não'),
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+            ),
+          ],
         ),
       );
     },

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/delete_button.dart';
+import 'package:webp_to_gif/components/layout.dart';
 import 'package:webp_to_gif/components/share_button.dart';
 import 'package:webp_to_gif/helpers/type.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
@@ -67,11 +68,25 @@ class _FoldersPageState extends State<FoldersPage> {
     }
   }
 
+  String _subtitle() {
+    if (widget.folder.filesCount == null || widget.folder.filesCount == 0) {
+      return 'Nenhum arquivo';
+    }
+
+    if (widget.folder.filesCount == 1) {
+      return '1 arquivo';
+    }
+
+    return '${widget.folder.filesCount} arquivos';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_folderProvider == null) {
-      return const Scaffold(
-        body: Center(
+      return Layout(
+        title: widget.folder.name,
+        subtitle: _subtitle(),
+        body: const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -94,10 +109,9 @@ class _FoldersPageState extends State<FoldersPage> {
 
           return Consumer<SelectionModeProvider>(
             builder: (BuildContext context, selectionModeProvider, child) {
-              return Scaffold(
-                appBar: AppBar(
-                  title: Text(widget.folder.name),
-                ),
+              return Layout(
+                title: widget.folder.name,
+                subtitle: _subtitle(),
                 body: Column(
                   children: [
                     Container(
@@ -109,9 +123,10 @@ class _FoldersPageState extends State<FoldersPage> {
                     ),
                     Expanded(
                       child: GridView.count(
+                        padding: const EdgeInsets.all(8),
                         crossAxisCount: 3,
-                        crossAxisSpacing: 3,
-                        mainAxisSpacing: 3,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
                         children: folderProvider.currentImages!
                             .map((ImageModel image) => ImageContainer(
                                   image: image,
@@ -125,11 +140,7 @@ class _FoldersPageState extends State<FoldersPage> {
                     ),
                   ],
                 ),
-                floatingActionButton: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children:
-                      _floatingButtons(folderProvider, selectionModeProvider),
-                ), // This trailing comma makes auto-formatting nicer for build methods.
+                barActions: _barActions(folderProvider, selectionModeProvider),
               );
             },
           );
@@ -138,16 +149,15 @@ class _FoldersPageState extends State<FoldersPage> {
     );
   }
 
-  List<Widget> _floatingButtons(
+  Widget _barActions(
     FoldersProvider folderProvider,
     SelectionModeProvider selectionModeProvider,
   ) {
     List<Widget> bts = [];
 
     if (folderProvider.currentImages!.isNotEmpty &&
-        !selectionModeProvider.inSelectionMode) {
+        selectionModeProvider.inSelectionMode) {
       bts.add(ShareButton(
-        heroTag: 'share-all',
         files: folderProvider.currentImages!
             .where((ImageModel img) => img.converted == true)
             .map((ImageModel img) => img.file)
@@ -158,12 +168,25 @@ class _FoldersPageState extends State<FoldersPage> {
     if (folderProvider.currentImages!.isNotEmpty &&
         selectionModeProvider.inSelectionMode &&
         selectionModeProvider.selectedItems.isNotEmpty) {
-      bts.add(ShareButton(
-        heroTag: 'share-selected',
-        color: Colors.green[300],
-        files: selectionModeProvider.selectedItems
-            .map((ImageModel img) => img.file)
-            .toList(),
+      bts.add(IconButton(
+        icon: const Icon(Icons.drive_file_move),
+        onPressed: () async {
+          var folder = await showOptionsDialog<FolderModel>(
+            context: context,
+            title: 'Selecione a pasta para importar',
+            options: {
+              for (var folder in folderProvider.list) folder.name: folder
+            },
+          );
+
+          if (folder == null) {
+            return;
+          }
+
+          folderProvider.moveFiles(selectionModeProvider.selectedItems, folder);
+
+          selectionModeProvider.removeSelected();
+        },
       ));
     }
 
@@ -171,7 +194,6 @@ class _FoldersPageState extends State<FoldersPage> {
         selectionModeProvider.inSelectionMode &&
         selectionModeProvider.selectedItems.isNotEmpty) {
       bts.add(DeleteButton(
-        heroTag: 'delete-button',
         onPressed: () {
           for (ImageModel imgModel in selectionModeProvider.selectedItems) {
             folderProvider.removeImage(imgModel);
@@ -182,54 +204,55 @@ class _FoldersPageState extends State<FoldersPage> {
       ));
     }
 
-    bts.add(FloatingActionButton(
-      heroTag: 'add-button',
-      onPressed: () async {
-        final ImageType? type = await showOptionsDialog<ImageType>(
-          context: context,
-          title: 'Selecione o tipo dos arquivos que deseja importar',
-          options: {
-            'GIF': Gif(),
-            'WEBP': Webp(),
-            'MP4': Mp4(),
-            // 'PNG': Png(),
-            // 'JPG': Jpg(),
-          },
-        );
-
-        if (type == null) {
-          return;
-        }
-
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
-          type: FileType.custom,
-          allowedExtensions: [type.extension()],
-          allowMultiple: true,
-        );
-
-        if (result == null) {
-          return;
-        }
-
-        List<ImageModel> models = [];
-        for (String path in result.paths.whereType<String>().toList()) {
-          var mdl = ImageModel(
-            folder: folderProvider.currentFolder!,
-            file: File(path),
-            converted: false,
-            imageType: type,
+    if (!selectionModeProvider.inSelectionMode) {
+      bts.add(IconButton(
+        icon: const Icon(Icons.add),
+        onPressed: () async {
+          final ImageType? type = await showOptionsDialog<ImageType>(
+            context: context,
+            title: 'Selecione o tipo dos arquivos que deseja importar',
+            options: {
+              'GIF': Gif(),
+              'WEBP': Webp(),
+              'MP4': Mp4(),
+              // 'PNG': Png(),
+              // 'JPG': Jpg(),
+            },
           );
 
-          models.add(mdl);
-        }
+          if (type == null) {
+            return;
+          }
 
-        ads.showConvertingAd();
-        folderProvider.convert(models);
-      },
-      child: const Icon(Icons.add),
-    ));
+          FilePickerResult? result = await FilePicker.platform.pickFiles(
+            type: FileType.custom,
+            allowedExtensions: [type.extension()],
+            allowMultiple: true,
+          );
 
-    return bts;
+          if (result == null) {
+            return;
+          }
+
+          List<ImageModel> models = [];
+          for (String path in result.paths.whereType<String>().toList()) {
+            var mdl = ImageModel(
+              folder: folderProvider.currentFolder!,
+              file: File(path),
+              converted: false,
+              imageType: type,
+            );
+
+            models.add(mdl);
+          }
+
+          ads.showConvertingAd();
+          folderProvider.convert(models);
+        },
+      ));
+    }
+
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: bts);
   }
 
   _convertShared(FoldersProvider folderProvider) {

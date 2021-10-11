@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
+import 'package:webp_to_gif/repositories/image_repository.dart';
 
 class FolderRepository {
   static final FolderRepository _instance =
@@ -56,12 +57,19 @@ class FolderRepository {
 
       for (var fdr in list) {
         if (FileSystemEntity.isDirectorySync(fdr.path)) {
-          folderList.add(FolderModel(
+          var folderModel = FolderModel(
             name: fdr.path
                 .split('/')
                 .last,
             path: fdr.path,
-          ));
+          );
+
+          var images = await ImageRepository().list(folderModel);
+
+          folderModel.filesCount = images.length;
+          folderModel.cover = images.first.thumbnail ?? images.first.file;
+
+          folderList.add(folderModel);
         }
       }
 

@@ -26,6 +26,7 @@ class ImageContainer extends StatelessWidget {
             opacity: image.converted ? 1 : 0.2,
             child: Container(
               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
                   image: FileImage(image.thumbnail ?? image.file),
                   fit: BoxFit.cover,
@@ -81,37 +82,10 @@ class ImageContainer extends StatelessWidget {
                                         color: Colors.white,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(Icons.delete),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      onDelete();
-                                    },
-                                  ),
-                                  TextButton(
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
                                       child: const Icon(Icons.share),
                                     ),
                                     onPressed: () {
                                       Share.shareFiles([image.file.path]);
-                                    },
-                                  ),
-                                  TextButton(
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.close),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
                                     },
                                   ),
                                 ],

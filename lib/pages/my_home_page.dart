@@ -1,5 +1,6 @@
 import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/folder_list_item.dart';
+import 'package:webp_to_gif/components/layout.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:flutter/material.dart';
@@ -17,52 +18,54 @@ class MyHomePage extends StatelessWidget {
       child: Consumer<FoldersProvider>(
         builder: (BuildContext context, FoldersProvider folderProvider,
             Widget? child) {
-          return Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              title: const Text('Pastas'),
-            ),
-            body: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: ListView(
-                      children: folderProvider.list
-                          .map((FolderModel folder) => FolderListItem(
-                                folder: folder,
-                                onPressed: () async {
-                                  await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          FoldersPage(folder: folder),
-                                    ),
-                                  );
-                                  folderProvider.changeFolder(null);
-                                },
-                                onDeletePressed: () async {
-                                  await folderProvider.remove(folder);
-                                },
-                              ))
-                          .toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () async {
+          return Layout(
+            title: 'Álbuns',
+            subtitle: '${folderProvider.folderCount} álbuns',
+            showLeading: false,
+            barActions: IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
                 showInputDialog(
                   context: context,
-                  title: 'Criar pasta',
-                  helperText: 'Nome da pasta',
+                  title: 'Criar álbum',
+                  helperText: 'Nome do álbum',
                   onSubmitted: (String value) {
                     folderProvider.create(value);
                     Navigator.pop(context);
                   },
                 );
               },
-              child: const Icon(Icons.add),
-            ), // This trailing comma makes auto-formatting nicer for build methods.
+            ),
+            body: GridView.count(
+              padding: const EdgeInsets.all(8),
+              crossAxisCount: 3,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 24,
+              childAspectRatio: 0.9,
+              children: folderProvider.list
+                  .map((FolderModel folder) => FolderListItem(
+                        folder: folder,
+                        onPressed: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => FoldersPage(folder: folder),
+                            ),
+                          );
+                          folderProvider.changeFolder(null);
+                        },
+                        onLongPress: () async {
+                          var confirm = await showConfirmDialog(
+                            context: context,
+                            title: 'Deseja remover a pasta ${folder.name}?',
+                          );
+
+                          if (confirm) {
+                            await folderProvider.remove(folder);
+                          }
+                        },
+                      ))
+                  .toList(),
+            ),
           );
         },
       ),

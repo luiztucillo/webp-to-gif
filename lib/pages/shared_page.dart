@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
+import 'package:webp_to_gif/components/layout.dart';
 import 'package:webp_to_gif/helpers/type.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
@@ -22,10 +23,9 @@ class SharedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recebendo compartilhamento'),
-      ),
+    return Layout(
+      title: 'Compartilhamento',
+      subtitle: files.length == 1 ? '1 arquivo compartilhado' : '${files.length} arquivos compartilhados',
       body: ChangeNotifierProvider(
         create: (BuildContext context) => FoldersProvider(),
         child: Consumer<FoldersProvider>(
@@ -34,46 +34,50 @@ class SharedPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        child: const Text('Importar e Converter'),
-                        onPressed: () async {
-                          var folder = await showOptionsDialog<FolderModel>(
-                            context: context,
-                            title: 'Selecione a pasta para importar',
-                            options: {
-                              for (var folder in folderProvider.list)
-                                folder.name: folder
-                            },
-                          );
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          child: const Text('Importar e Converter'),
+                          onPressed: () async {
+                            var folder = await showOptionsDialog<FolderModel>(
+                              context: context,
+                              title: 'Selecione a pasta para importar',
+                              options: {
+                                for (var folder in folderProvider.list)
+                                  folder.name: folder
+                              },
+                            );
 
-                          if (folder == null) {
-                            return;
-                          }
+                            if (folder == null) {
+                              return;
+                            }
 
-                          finishShare();
+                            finishShare();
 
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => FoldersPage(
-                                folder: folder,
-                                shared: files,
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => FoldersPage(
+                                  folder: folder,
+                                  shared: files,
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    TextButton(
-                      child: const Text('Cancelar'),
-                      onPressed: finishShare,
-                    ),
-                  ],
+                      TextButton(
+                        child: const Text('Cancelar'),
+                        onPressed: finishShare,
+                      ),
+                    ],
+                  ),
                 ),
                 Expanded(
                   child: GridView.count(
+                    padding: EdgeInsets.all(8),
                     crossAxisCount: 3,
                     children: files.map((SharedMediaFile file) {
                       return Stack(

@@ -19,6 +19,7 @@ class FoldersProvider extends ChangeNotifier {
   bool get converting => _converting;
 
   List<FolderModel> get list => _items;
+  int get folderCount => _items.length;
 
   FoldersProvider() {
     init();
@@ -48,6 +49,15 @@ class FoldersProvider extends ChangeNotifier {
   Future<void> removeImage(ImageModel image) async {
     await ImageRepository().delete(image);
     _currentImages?.remove(image);
+    customNotifyListeners();
+  }
+
+  Future<void> moveFiles(List<ImageModel> images, FolderModel newFolder) async {
+    for (ImageModel img in images) {
+      var name = '${DateTime.now().millisecondsSinceEpoch}.gif';
+      img.file.renameSync('${newFolder.path}/$name');
+      _currentImages?.remove(img);
+    }
     customNotifyListeners();
   }
 

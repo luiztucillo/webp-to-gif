@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/pages/my_home_page.dart';
 import 'package:webp_to_gif/pages/shared_page.dart';
 import 'package:webp_to_gif/theme.dart';
