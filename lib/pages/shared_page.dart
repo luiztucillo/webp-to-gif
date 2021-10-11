@@ -10,11 +10,12 @@ import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:webp_to_gif/providers/share_provider.dart';
 
-import 'folders_page.dart';
-
 class SharedPage extends StatelessWidget {
+  final Function(List<SharedMediaFile>, FolderModel) onShare;
+
   const SharedPage({
     Key? key,
+    required this.onShare,
   }) : super(key: key);
 
   @override
@@ -53,16 +54,11 @@ class SharedPage extends StatelessWidget {
                                 return;
                               }
 
+                              var files = shareProvider.sharedFiles!;
+
                               shareProvider.finishShare();
 
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => FoldersPage(
-                                    folder: folder,
-                                    shared: shareProvider.sharedFiles!,
-                                  ),
-                                ),
-                              );
+                              onShare(files, folder);
                             },
                           ),
                         ),

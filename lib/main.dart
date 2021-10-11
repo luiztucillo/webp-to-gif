@@ -17,10 +17,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WebpToGif',
-      theme: AppTheme.getTheme(),
-      home: const AlbunsPage(),
+    return ChangeNotifierProvider(
+      create: (context) => ShareProvider(),
+      child: MaterialApp(
+        title: 'WebpToGif',
+        theme: AppTheme.getTheme(),
+        home: const AlbunsPage(),
+      ),
     );
   }
 }

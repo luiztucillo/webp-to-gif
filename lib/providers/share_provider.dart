@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/pages/shared_page.dart';
 
 class ShareProvider extends ChangeNotifier {
@@ -18,7 +19,15 @@ class ShareProvider extends ChangeNotifier {
     ReceiveSharingIntent.getInitialMedia().then(_setSharedFiles);
   }
 
-  Widget widget() => const SharedPage();
+  Widget widget({
+    required Function(List<SharedMediaFile>, FolderModel) onShare,
+  }) =>
+      SharedPage(
+        onShare: (List<SharedMediaFile> files, FolderModel folder) {
+          _intentDataStreamSubscription?.cancel();
+          onShare(files, folder);
+        },
+      );
 
   _setSharedFiles(List<SharedMediaFile> files) {
     if (files.isEmpty) {

@@ -1,3 +1,4 @@
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:webp_to_gif/components/algum_popup_menu.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/folder_list_item.dart';
@@ -11,19 +12,28 @@ import 'package:webp_to_gif/providers/share_provider.dart';
 import 'folders_page.dart';
 
 class AlbunsPage extends StatelessWidget {
-  const AlbunsPage({Key? key}) : super(key: key);
+  const AlbunsPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => FoldersProvider()),
-        ChangeNotifierProvider(create: (context) => ShareProvider()),
-      ],
+    return ChangeNotifierProvider(
+      create: (context) => FoldersProvider(),
       child: Consumer2<FoldersProvider, ShareProvider>(
         builder: (context, folderProvider, shareProvider, child) {
           if (shareProvider.sharedFiles != null) {
-            return shareProvider.widget();
+            return shareProvider.widget(onShare:
+                (List<SharedMediaFile> sharedFiles, FolderModel folder) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => FoldersPage(
+                    folder: folder,
+                    shared: sharedFiles,
+                  ),
+                ),
+              );
+            });
           }
 
           return Layout(
@@ -56,13 +66,16 @@ class AlbunsPage extends StatelessWidget {
                         onPressed: () async {
                           await Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => FoldersPage(folder: folder),
+                              builder: (context) => FoldersPage(
+                                folder: folder,
+                              ),
                             ),
                           );
                           folderProvider.changeFolder(null);
                         },
                         onLongPress: (BuildContext context) async {
-                          var selected = await AlbumPopupMenu.showAlbumMenu(context: context);
+                          var selected = await AlbumPopupMenu.showAlbumMenu(
+                              context: context);
 
                           if (selected == 1) {
                             var confirm = await showConfirmDialog(

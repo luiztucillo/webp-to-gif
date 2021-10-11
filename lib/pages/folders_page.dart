@@ -12,7 +12,6 @@ import 'package:webp_to_gif/models/image_types/gif.dart';
 import 'package:webp_to_gif/models/image_types/image_type.dart';
 import 'package:webp_to_gif/models/image_types/mp4.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
-import 'package:webp_to_gif/pages/shared_page.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +65,7 @@ class _FoldersPageState extends State<FoldersPage> {
     setState(() {});
 
     if (widget.shared != null) {
-      _convertShared(_folderProvider!);
+      _convertShared(widget.shared!, _folderProvider!);
     }
   }
 
@@ -98,12 +97,24 @@ class _FoldersPageState extends State<FoldersPage> {
       providers: [
         ChangeNotifierProvider(create: (BuildContext context) => _folderProvider),
         ChangeNotifierProvider(create: (context) => SelectionModeProvider()),
-        ChangeNotifierProvider(create: (context) => ShareProvider()),
       ],
       child: Consumer3<FoldersProvider, SelectionModeProvider, ShareProvider>(
         builder: (context, folderProvider, selectionModeProvider, shareProvider, child) {
           if (shareProvider.sharedFiles != null) {
-            return shareProvider.widget();
+            return shareProvider.widget(onShare: (List<SharedMediaFile> files, FolderModel folder) {
+              if (folder.path == folderProvider.currentFolder!.path) {
+                _convertShared(files, folderProvider);
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => FoldersPage(
+                      folder: folder,
+                      shared: files,
+                    ),
+                  ),
+                );
+              }
+            });
           }
 
           if (folderProvider.currentImages == null) {
@@ -254,9 +265,9 @@ class _FoldersPageState extends State<FoldersPage> {
     return Row(mainAxisAlignment: MainAxisAlignment.end, children: bts);
   }
 
-  _convertShared(FoldersProvider folderProvider) {
+  _convertShared(List<SharedMediaFile> files, FoldersProvider folderProvider) {
     List<ImageModel> models = [];
-    for (SharedMediaFile file in widget.shared!) {
+    for (SharedMediaFile file in files) {
       var mdl = ImageModel(
         folder: folderProvider.currentFolder!,
         file: File(file.path),
