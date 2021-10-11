@@ -9,6 +9,7 @@ class ImageModel {
   bool converted;
   File file;
   File? thumbnail;
+  late DateTime updatedAt;
 
   bool _selected = false;
 
@@ -18,7 +19,10 @@ class ImageModel {
     required this.converted,
     required this.imageType,
     this.thumbnail,
-  });
+  }) {
+    final stat = FileStat.statSync(file.path);
+    updatedAt = stat.modified;
+  }
 
   void toggleSelect() {
     _selected = !_selected;

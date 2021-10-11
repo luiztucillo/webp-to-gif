@@ -6,19 +6,26 @@ import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:webp_to_gif/providers/share_provider.dart';
 
 import 'folders_page.dart';
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+class AlbunsPage extends StatelessWidget {
+  const AlbunsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (BuildContext context) => FoldersProvider(),
-      child: Consumer<FoldersProvider>(
-        builder: (BuildContext context, FoldersProvider folderProvider,
-            Widget? child) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => FoldersProvider()),
+        ChangeNotifierProvider(create: (context) => ShareProvider()),
+      ],
+      child: Consumer2<FoldersProvider, ShareProvider>(
+        builder: (context, folderProvider, shareProvider, child) {
+          if (shareProvider.sharedFiles != null) {
+            return shareProvider.widget();
+          }
+
           return Layout(
             title: 'Álbuns',
             subtitle: '${folderProvider.folderCount} álbuns',

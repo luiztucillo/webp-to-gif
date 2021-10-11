@@ -12,11 +12,13 @@ import 'package:webp_to_gif/models/image_types/gif.dart';
 import 'package:webp_to_gif/models/image_types/image_type.dart';
 import 'package:webp_to_gif/models/image_types/mp4.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
+import 'package:webp_to_gif/pages/shared_page.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webp_to_gif/providers/selection_mode_provider.dart';
+import 'package:webp_to_gif/providers/share_provider.dart';
 import 'package:webp_to_gif/services/ads.dart';
 
 import '../components/image_container.dart';
@@ -94,55 +96,52 @@ class _FoldersPageState extends State<FoldersPage> {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (BuildContext context) {
-          return _folderProvider;
-        }),
-        ChangeNotifierProvider(create: (context) {
-          return SelectionModeProvider();
-        }),
+        ChangeNotifierProvider(create: (BuildContext context) => _folderProvider),
+        ChangeNotifierProvider(create: (context) => SelectionModeProvider()),
+        ChangeNotifierProvider(create: (context) => ShareProvider()),
       ],
-      child: Consumer<FoldersProvider>(
-        builder: (context, folderProvider, child) {
+      child: Consumer3<FoldersProvider, SelectionModeProvider, ShareProvider>(
+        builder: (context, folderProvider, selectionModeProvider, shareProvider, child) {
+          if (shareProvider.sharedFiles != null) {
+            return shareProvider.widget();
+          }
+
           if (folderProvider.currentImages == null) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return Consumer<SelectionModeProvider>(
-            builder: (BuildContext context, selectionModeProvider, child) {
-              return Layout(
-                title: widget.folder.name,
-                subtitle: _subtitle(),
-                body: Column(
-                  children: [
-                    Container(
-                      color: Colors.grey.withAlpha(100),
-                      child: SizedBox(
-                        height: 100,
-                        child: ads.gridWidget(),
-                      ),
-                    ),
-                    Expanded(
-                      child: GridView.count(
-                        padding: const EdgeInsets.all(8),
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                        children: folderProvider.currentImages!
-                            .map((ImageModel image) => ImageContainer(
-                                  image: image,
-                                  isSelected: image.isSelected(),
-                                  onDelete: () {
-                                    folderProvider.removeImage(image);
-                                  },
-                                ))
-                            .toList(),
-                      ),
-                    ),
-                  ],
+          return Layout(
+            title: widget.folder.name,
+            subtitle: _subtitle(),
+            body: Column(
+              children: [
+                Container(
+                  color: Colors.grey.withAlpha(100),
+                  child: SizedBox(
+                    height: 100,
+                    child: ads.gridWidget(),
+                  ),
                 ),
-                barActions: _barActions(folderProvider, selectionModeProvider),
-              );
-            },
+                Expanded(
+                  child: GridView.count(
+                    padding: const EdgeInsets.all(8),
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    children: folderProvider.currentImages!
+                        .map((ImageModel image) => ImageContainer(
+                      image: image,
+                      isSelected: image.isSelected(),
+                      onDelete: () {
+                        folderProvider.removeImage(image);
+                      },
+                    ))
+                        .toList(),
+                  ),
+                ),
+              ],
+            ),
+            barActions: _barActions(folderProvider, selectionModeProvider),
           );
         },
       ),

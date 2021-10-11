@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter_ffmpeg/completed_ffmpeg_execution.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:image/image.dart';
 import 'package:path_provider/path_provider.dart';

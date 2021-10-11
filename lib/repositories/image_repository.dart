@@ -36,6 +36,8 @@ class ImageRepository {
       }
     }
 
+    imageList.sort((ImageModel a, ImageModel b) => a.updatedAt.isBefore(b.updatedAt) ? 0 : 1);
+
     return imageList;
   }
 

@@ -8,115 +8,117 @@ import 'package:webp_to_gif/components/layout.dart';
 import 'package:webp_to_gif/helpers/type.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
+import 'package:webp_to_gif/providers/share_provider.dart';
 
 import 'folders_page.dart';
 
 class SharedPage extends StatelessWidget {
-  final List<SharedMediaFile> files;
-  final VoidCallback finishShare;
-
   const SharedPage({
     Key? key,
-    required this.files,
-    required this.finishShare,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Layout(
-      title: 'Compartilhamento',
-      subtitle: files.length == 1 ? '1 arquivo compartilhado' : '${files.length} arquivos compartilhados',
-      body: ChangeNotifierProvider(
-        create: (BuildContext context) => FoldersProvider(),
-        child: Consumer<FoldersProvider>(
-          builder: (context, FoldersProvider folderProvider, child) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          child: const Text('Importar e Converter'),
-                          onPressed: () async {
-                            var folder = await showOptionsDialog<FolderModel>(
-                              context: context,
-                              title: 'Selecione a pasta para importar',
-                              options: {
-                                for (var folder in folderProvider.list)
-                                  folder.name: folder
-                              },
-                            );
+    return Consumer(
+      builder: (context, ShareProvider shareProvider, child) => Layout(
+        title: 'Compartilhamento',
+        subtitle: shareProvider.sharedFiles!.length == 1 ? '1 arquivo compartilhado' : '${shareProvider.sharedFiles!.length} arquivos compartilhados',
+        showLeading: false,
+        body: ChangeNotifierProvider(
+          create: (BuildContext context) => FoldersProvider(),
+          child: Consumer<FoldersProvider>(
+            builder: (context, FoldersProvider folderProvider, child) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            child: const Text('Importar e Converter'),
+                            onPressed: () async {
+                              var folder = await showOptionsDialog<FolderModel>(
+                                context: context,
+                                title: 'Selecione a pasta para importar',
+                                options: {
+                                  for (var folder in folderProvider.list)
+                                    folder.name: folder
+                                },
+                              );
 
-                            if (folder == null) {
-                              return;
-                            }
+                              if (folder == null) {
+                                return;
+                              }
 
-                            finishShare();
+                              shareProvider.finishShare();
 
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => FoldersPage(
-                                  folder: folder,
-                                  shared: files,
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => FoldersPage(
+                                    folder: folder,
+                                    shared: shareProvider.sharedFiles!,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                      TextButton(
-                        child: const Text('Cancelar'),
-                        onPressed: finishShare,
-                      ),
-                    ],
+                        TextButton(
+                          child: const Text('Cancelar'),
+                          onPressed: shareProvider.finishShare,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: GridView.count(
-                    padding: EdgeInsets.all(8),
-                    crossAxisCount: 3,
-                    children: files.map((SharedMediaFile file) {
-                      return Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: FileImage(
-                                  File(file.thumbnail ?? file.path),
+                  Expanded(
+                    child: GridView.count(
+                      padding: const EdgeInsets.all(8),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      children: shareProvider.sharedFiles!.map((SharedMediaFile file) {
+                        return Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                image: DecorationImage(
+                                  image: FileImage(
+                                    File(file.thumbnail ?? file.path),
+                                  ),
+                                  fit: BoxFit.cover,
                                 ),
-                                fit: BoxFit.cover,
                               ),
                             ),
-                          ),
-                          IgnorePointer(
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
-                              alignment: Alignment.bottomLeft,
+                            IgnorePointer(
                               child: Container(
-                                padding: const EdgeInsets.all(5),
-                                child: Text(
-                                  Type.getType(file.path)
-                                      .extension()
-                                      .toUpperCase(),
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Colors.white),
+                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                                alignment: Alignment.bottomLeft,
+                                child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Text(
+                                    Type.getType(file.path)
+                                        .extension()
+                                        .toUpperCase(),
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.white),
+                                  ),
+                                  color: Colors.black.withAlpha(150),
                                 ),
-                                color: Colors.black.withAlpha(150),
                               ),
                             ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

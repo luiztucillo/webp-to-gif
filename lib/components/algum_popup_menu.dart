@@ -5,22 +5,6 @@ class AlbumPopupMenu {
   static Future showAlbumMenu({
     required BuildContext context,
   }) async {
-    final RenderBox button = context.findRenderObject()! as RenderBox;
-
-    final RenderBox overlay =
-        Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
-
-    final offset = Offset(button.size.width - 50, 16);
-
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(offset, ancestor: overlay),
-        button.localToGlobal(button.size.bottomRight(Offset.zero) + offset,
-            ancestor: overlay),
-      ),
-      Offset.zero & overlay.size,
-    );
-
     return await showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
