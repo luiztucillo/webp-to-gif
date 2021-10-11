@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
-import 'package:webp_to_gif/components/delete_button.dart';
 import 'package:webp_to_gif/components/layout.dart';
-import 'package:webp_to_gif/components/share_button.dart';
 import 'package:webp_to_gif/helpers/type.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
@@ -155,7 +153,7 @@ class _ImagesPageState extends State<ImagesPage> {
                   ),
                 ),
                 AnimatedSize(
-                  child: Container(
+                  child: SizedBox(
                     height: selectionModeProvider.inSelectionMode ? 60 : 0,
                     child: _actions(folderProvider, selectionModeProvider),
                   ),
