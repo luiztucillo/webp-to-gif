@@ -1,5 +1,5 @@
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:webp_to_gif/components/algum_popup_menu.dart';
+import 'package:webp_to_gif/components/album_popup_menu.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/folder_list_item.dart';
 import 'package:webp_to_gif/components/layout.dart';
@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webp_to_gif/providers/share_provider.dart';
 
-import 'folders_page.dart';
+import 'images_page.dart';
 
 class AlbunsPage extends StatelessWidget {
   const AlbunsPage({
@@ -27,7 +27,7 @@ class AlbunsPage extends StatelessWidget {
                 (List<SharedMediaFile> sharedFiles, FolderModel folder) {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => FoldersPage(
+                  builder: (context) => ImagesPage(
                     folder: folder,
                     shared: sharedFiles,
                   ),
@@ -66,7 +66,7 @@ class AlbunsPage extends StatelessWidget {
                         onPressed: () async {
                           await Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => FoldersPage(
+                              builder: (context) => ImagesPage(
                                 folder: folder,
                               ),
                             ),

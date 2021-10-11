@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/delete_button.dart';
 import 'package:webp_to_gif/components/layout.dart';
@@ -22,21 +23,21 @@ import 'package:webp_to_gif/services/ads.dart';
 
 import '../components/image_container.dart';
 
-class FoldersPage extends StatefulWidget {
+class ImagesPage extends StatefulWidget {
   final FolderModel folder;
   final List<SharedMediaFile>? shared;
 
-  const FoldersPage({
+  const ImagesPage({
     Key? key,
     required this.folder,
     this.shared,
   }) : super(key: key);
 
   @override
-  State<FoldersPage> createState() => _FoldersPageState();
+  State<ImagesPage> createState() => _ImagesPageState();
 }
 
-class _FoldersPageState extends State<FoldersPage> {
+class _ImagesPageState extends State<ImagesPage> {
   FoldersProvider? _folderProvider;
   Ads ads = Ads();
 
@@ -95,19 +96,22 @@ class _FoldersPageState extends State<FoldersPage> {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (BuildContext context) => _folderProvider),
+        ChangeNotifierProvider(
+            create: (BuildContext context) => _folderProvider),
         ChangeNotifierProvider(create: (context) => SelectionModeProvider()),
       ],
       child: Consumer3<FoldersProvider, SelectionModeProvider, ShareProvider>(
-        builder: (context, folderProvider, selectionModeProvider, shareProvider, child) {
+        builder: (context, folderProvider, selectionModeProvider, shareProvider,
+            child) {
           if (shareProvider.sharedFiles != null) {
-            return shareProvider.widget(onShare: (List<SharedMediaFile> files, FolderModel folder) {
+            return shareProvider.widget(
+                onShare: (List<SharedMediaFile> files, FolderModel folder) {
               if (folder.path == folderProvider.currentFolder!.path) {
                 _convertShared(files, folderProvider);
               } else {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => FoldersPage(
+                    builder: (context) => ImagesPage(
                       folder: folder,
                       shared: files,
                     ),
@@ -141,49 +145,74 @@ class _FoldersPageState extends State<FoldersPage> {
                     mainAxisSpacing: 8,
                     children: folderProvider.currentImages!
                         .map((ImageModel image) => ImageContainer(
-                      image: image,
-                      isSelected: image.isSelected(),
-                      onDelete: () {
-                        folderProvider.removeImage(image);
-                      },
-                    ))
+                              image: image,
+                              isSelected: image.isSelected(),
+                              onDelete: () {
+                                folderProvider.removeImage(image);
+                              },
+                            ))
                         .toList(),
                   ),
                 ),
+                AnimatedSize(
+                  child: Container(
+                    height: selectionModeProvider.inSelectionMode ? 60 : 0,
+                    child: _actions(folderProvider, selectionModeProvider),
+                  ),
+                  duration: const Duration(milliseconds: 100),
+                ),
               ],
             ),
-            barActions: _barActions(folderProvider, selectionModeProvider),
+            barActions: _addButton(folderProvider),
           );
         },
       ),
     );
   }
 
-  Widget _barActions(
+  Widget _actions(
     FoldersProvider folderProvider,
     SelectionModeProvider selectionModeProvider,
   ) {
     List<Widget> bts = [];
 
-    if (folderProvider.currentImages!.isNotEmpty &&
-        selectionModeProvider.inSelectionMode) {
-      bts.add(ShareButton(
-        files: folderProvider.currentImages!
+    bts.add(TextButton(
+      child: Row(
+        children: const [
+          Icon(Icons.share),
+          SizedBox(width: 8),
+          Text('Compartilhar'),
+        ],
+      ),
+      onPressed: () {
+        var files = folderProvider.currentImages!
             .where((ImageModel img) => img.converted == true)
             .map((ImageModel img) => img.file)
-            .toList(),
-      ));
-    }
+            .toList();
 
-    if (folderProvider.currentImages!.isNotEmpty &&
-        selectionModeProvider.inSelectionMode &&
-        selectionModeProvider.selectedItems.isNotEmpty) {
-      bts.add(IconButton(
-        icon: const Icon(Icons.drive_file_move),
+        List<String> images = [];
+
+        for (File file in files) {
+          images.add(file.path);
+        }
+
+        Share.shareFiles(images);
+      },
+    ));
+
+    bts.add(
+      TextButton(
+        child: Row(
+          children: const [
+            Icon(Icons.drive_file_move),
+            SizedBox(width: 8),
+            Text('Mover'),
+          ],
+        ),
         onPressed: () async {
           var folder = await showOptionsDialog<FolderModel>(
             context: context,
-            title: 'Selecione a pasta para importar',
+            title: 'Para qual álbum deseja mover?',
             options: {
               for (var folder in folderProvider.list) folder.name: folder
             },
@@ -197,13 +226,18 @@ class _FoldersPageState extends State<FoldersPage> {
 
           selectionModeProvider.removeSelected();
         },
-      ));
-    }
+      ),
+    );
 
-    if (folderProvider.currentImages!.isNotEmpty &&
-        selectionModeProvider.inSelectionMode &&
-        selectionModeProvider.selectedItems.isNotEmpty) {
-      bts.add(DeleteButton(
+    if (folderProvider.currentImages!.isNotEmpty) {
+      bts.add(TextButton(
+        child: Row(
+          children: const [
+            Icon(Icons.delete),
+            SizedBox(width: 8),
+            Text('Remover'),
+          ],
+        ),
         onPressed: () {
           for (ImageModel imgModel in selectionModeProvider.selectedItems) {
             folderProvider.removeImage(imgModel);
@@ -214,55 +248,55 @@ class _FoldersPageState extends State<FoldersPage> {
       ));
     }
 
-    if (!selectionModeProvider.inSelectionMode) {
-      bts.add(IconButton(
-        icon: const Icon(Icons.add),
-        onPressed: () async {
-          final ImageType? type = await showOptionsDialog<ImageType>(
-            context: context,
-            title: 'Selecione o tipo dos arquivos que deseja importar',
-            options: {
-              'GIF': Gif(),
-              'WEBP': Webp(),
-              'MP4': Mp4(),
-              // 'PNG': Png(),
-              // 'JPG': Jpg(),
-            },
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: bts);
+  }
+
+  Widget _addButton(FoldersProvider folderProvider) {
+    return IconButton(
+      icon: const Icon(Icons.add),
+      onPressed: () async {
+        final ImageType? type = await showOptionsDialog<ImageType>(
+          context: context,
+          title: 'Selecione o tipo dos arquivos que deseja importar',
+          options: {
+            'GIF': Gif(),
+            'WEBP': Webp(),
+            'MP4': Mp4(),
+            // 'PNG': Png(),
+            // 'JPG': Jpg(),
+          },
+        );
+
+        if (type == null) {
+          return;
+        }
+
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: [type.extension()],
+          allowMultiple: true,
+        );
+
+        if (result == null) {
+          return;
+        }
+
+        List<ImageModel> models = [];
+        for (String path in result.paths.whereType<String>().toList()) {
+          var mdl = ImageModel(
+            folder: folderProvider.currentFolder!,
+            file: File(path),
+            converted: false,
+            imageType: type,
           );
 
-          if (type == null) {
-            return;
-          }
+          models.add(mdl);
+        }
 
-          FilePickerResult? result = await FilePicker.platform.pickFiles(
-            type: FileType.custom,
-            allowedExtensions: [type.extension()],
-            allowMultiple: true,
-          );
-
-          if (result == null) {
-            return;
-          }
-
-          List<ImageModel> models = [];
-          for (String path in result.paths.whereType<String>().toList()) {
-            var mdl = ImageModel(
-              folder: folderProvider.currentFolder!,
-              file: File(path),
-              converted: false,
-              imageType: type,
-            );
-
-            models.add(mdl);
-          }
-
-          ads.showConvertingAd();
-          folderProvider.convert(models);
-        },
-      ));
-    }
-
-    return Row(mainAxisAlignment: MainAxisAlignment.end, children: bts);
+        ads.showConvertingAd();
+        folderProvider.convert(models);
+      },
+    );
   }
 
   _convertShared(List<SharedMediaFile> files, FoldersProvider folderProvider) {
