@@ -26,6 +26,7 @@ class FoldersProvider extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    _items.clear();
     _items.addAll(await FolderRepository().list());
     customNotifyListeners();
   }
@@ -42,13 +43,14 @@ class FoldersProvider extends ChangeNotifier {
 
   Future<void> remove(FolderModel folder) async {
     await FolderRepository().delete(folder);
-    _items.remove(folder);
+    FolderRepository().prepareDir(currentFolder!);
     customNotifyListeners();
   }
 
   Future<void> removeImage(ImageModel image) async {
     await ImageRepository().delete(image);
     _currentImages?.remove(image);
+    FolderRepository().prepareDir(currentFolder!);
     customNotifyListeners();
   }
 
@@ -58,10 +60,15 @@ class FoldersProvider extends ChangeNotifier {
       img.file.renameSync('${newFolder.path}/$name');
       _currentImages?.remove(img);
     }
+
+    FolderRepository().prepareDir(currentFolder!);
+
     customNotifyListeners();
   }
 
   Future changeFolder(FolderModel? folder) async {
+    init();
+
     _currentFolder = folder;
 
     _currentImages?.clear();
@@ -103,6 +110,8 @@ class FoldersProvider extends ChangeNotifier {
         if (_convertingList.isEmpty) {
           _converting = false;
         }
+
+        FolderRepository().prepareDir(currentFolder!);
 
         customNotifyListeners();
       });

@@ -11,6 +11,7 @@ import 'package:webp_to_gif/models/image_types/gif.dart';
 import 'package:webp_to_gif/models/image_types/image_type.dart';
 import 'package:webp_to_gif/models/image_types/mp4.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
+import 'package:webp_to_gif/providers/ads_provider.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -36,35 +37,44 @@ class ImagesPage extends StatefulWidget {
 }
 
 class _ImagesPageState extends State<ImagesPage> {
-  FoldersProvider? _folderProvider;
-  Ads ads = Ads();
+  AdsProvider? _adsProvider;
+  Ads? ads;
 
   @override
   void initState() {
     super.initState();
 
-    if (Platform.isAndroid || Platform.isIOS) {
-      ads.loadConvertingAd();
-
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
-        ads.loadGridAd(() {
-          setState(() {});
-        });
-      });
-    }
-
-    _init();
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      _init();
+    });
   }
 
   _init() async {
-    _folderProvider = FoldersProvider();
+    var folderProvider = context.read<FoldersProvider>();
 
-    await _folderProvider!.changeFolder(widget.folder);
+    _adsProvider = context.read<AdsProvider>();
+
+    if (_adsProvider?.showAds == true) {
+      _initAds();
+    }
+
+    await folderProvider.changeFolder(widget.folder);
 
     setState(() {});
 
     if (widget.shared != null) {
-      _convertShared(widget.shared!, _folderProvider!);
+      _convertShared(widget.shared!, folderProvider);
+    }
+  }
+
+  _initAds() {
+    ads = Ads();
+    if (Platform.isAndroid || Platform.isIOS) {
+      ads!.loadConvertingAd();
+
+      ads!.loadGridAd(() {
+        setState(() {});
+      });
     }
   }
 
@@ -82,25 +92,28 @@ class _ImagesPageState extends State<ImagesPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_folderProvider == null) {
-      return Layout(
-        title: widget.folder.name,
-        subtitle: _subtitle(),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
+    return ChangeNotifierProvider(
+      create: (context) => SelectionModeProvider(),
+      child: Consumer4<FoldersProvider, SelectionModeProvider, ShareProvider,
+          AdsProvider>(
+        builder: (
+          context,
+          folderProvider,
+          selectionModeProvider,
+          shareProvider,
+          adsProvider,
+          child,
+        ) {
+          if (folderProvider.currentFolder == null) {
+            return Layout(
+              title: widget.folder.name,
+              subtitle: _subtitle(),
+              body: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
 
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-            create: (BuildContext context) => _folderProvider),
-        ChangeNotifierProvider(create: (context) => SelectionModeProvider()),
-      ],
-      child: Consumer3<FoldersProvider, SelectionModeProvider, ShareProvider>(
-        builder: (context, folderProvider, selectionModeProvider, shareProvider,
-            child) {
           if (shareProvider.sharedFiles != null) {
             return shareProvider.widget(
                 onShare: (List<SharedMediaFile> files, FolderModel folder) {
@@ -128,11 +141,11 @@ class _ImagesPageState extends State<ImagesPage> {
             subtitle: _subtitle(),
             body: Column(
               children: [
-                Container(
+                !adsProvider.showAds ? Container() : Container(
                   color: Colors.grey.withAlpha(100),
                   child: SizedBox(
                     height: 100,
-                    child: ads.gridWidget(),
+                    child:  ads!.gridWidget(),
                   ),
                 ),
                 Expanded(
@@ -291,8 +304,10 @@ class _ImagesPageState extends State<ImagesPage> {
           models.add(mdl);
         }
 
-        ads.showConvertingAd();
-        folderProvider.convert(models);
+        if (_adsProvider?.showAds == true) {
+          ads!.showConvertingAd();
+          folderProvider.convert(models);
+        }
       },
     );
   }
@@ -312,13 +327,17 @@ class _ImagesPageState extends State<ImagesPage> {
       models.add(mdl);
     }
 
-    ads.showConvertingAd();
+    if (_adsProvider?.showAds == true) {
+      ads!.showConvertingAd();
+      folderProvider.convert(models);
+    }
+
     folderProvider.convert(models);
   }
 
   @override
   void dispose() {
     super.dispose();
-    ads.disposeAds();
+    ads?.disposeAds();
   }
 }

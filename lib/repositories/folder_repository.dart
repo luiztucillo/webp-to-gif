@@ -64,10 +64,7 @@ class FolderRepository {
             path: fdr.path,
           );
 
-          var images = await ImageRepository().list(folderModel);
-
-          folderModel.filesCount = images.length;
-          folderModel.cover = images.first.thumbnail ?? images.first.file;
+          prepareDir(folderModel);
 
           folderList.add(folderModel);
         }
@@ -76,6 +73,16 @@ class FolderRepository {
       return folderList;
     }  catch(e) {
       return [];
+    }
+  }
+
+  Future<void> prepareDir(FolderModel folder) async {
+    var images = await ImageRepository().list(folder);
+
+    folder.filesCount = images.length;
+
+    if (images.isNotEmpty) {
+      folder.cover = images.first.thumbnail ?? images.first.file;
     }
   }
 }

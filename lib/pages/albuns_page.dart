@@ -18,82 +18,79 @@ class AlbunsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => FoldersProvider(),
-      child: Consumer2<FoldersProvider, ShareProvider>(
-        builder: (context, folderProvider, shareProvider, child) {
-          if (shareProvider.sharedFiles != null) {
-            return shareProvider.widget(onShare:
-                (List<SharedMediaFile> sharedFiles, FolderModel folder) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => ImagesPage(
-                    folder: folder,
-                    shared: sharedFiles,
-                  ),
+    return Consumer2<FoldersProvider, ShareProvider>(
+      builder: (context, folderProvider, shareProvider, child) {
+        if (shareProvider.sharedFiles != null) {
+          return shareProvider.widget(onShare:
+              (List<SharedMediaFile> sharedFiles, FolderModel folder) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ImagesPage(
+                  folder: folder,
+                  shared: sharedFiles,
                 ),
+              ),
+            );
+          });
+        }
+
+        return Layout(
+          title: 'Álbuns',
+          subtitle: '${folderProvider.folderCount} álbuns',
+          showLeading: false,
+          barActions: IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              showInputDialog(
+                context: context,
+                title: 'Criar álbum',
+                helperText: 'Nome do álbum',
+                onSubmitted: (String value) {
+                  folderProvider.create(value);
+                  Navigator.pop(context);
+                },
               );
-            });
-          }
-
-          return Layout(
-            title: 'Álbuns',
-            subtitle: '${folderProvider.folderCount} álbuns',
-            showLeading: false,
-            barActions: IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
-                showInputDialog(
-                  context: context,
-                  title: 'Criar álbum',
-                  helperText: 'Nome do álbum',
-                  onSubmitted: (String value) {
-                    folderProvider.create(value);
-                    Navigator.pop(context);
-                  },
-                );
-              },
-            ),
-            body: GridView.count(
-              padding: const EdgeInsets.all(8),
-              crossAxisCount: 3,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 24,
-              childAspectRatio: 0.9,
-              children: folderProvider.list
-                  .map((FolderModel folder) => FolderListItem(
-                        folder: folder,
-                        onPressed: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => ImagesPage(
-                                folder: folder,
-                              ),
+            },
+          ),
+          body: GridView.count(
+            padding: const EdgeInsets.all(8),
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 24,
+            childAspectRatio: 0.9,
+            children: folderProvider.list
+                .map((FolderModel folder) => FolderListItem(
+                      folder: folder,
+                      onPressed: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ImagesPage(
+                              folder: folder,
                             ),
+                          ),
+                        );
+                        folderProvider.changeFolder(null);
+                      },
+                      onLongPress: (BuildContext context) async {
+                        var selected = await AlbumPopupMenu.showAlbumMenu(
+                            context: context);
+
+                        if (selected == 1) {
+                          var confirm = await showConfirmDialog(
+                            context: context,
+                            title: 'Deseja remover a pasta ${folder.name}?',
                           );
-                          folderProvider.changeFolder(null);
-                        },
-                        onLongPress: (BuildContext context) async {
-                          var selected = await AlbumPopupMenu.showAlbumMenu(
-                              context: context);
 
-                          if (selected == 1) {
-                            var confirm = await showConfirmDialog(
-                              context: context,
-                              title: 'Deseja remover a pasta ${folder.name}?',
-                            );
-
-                            if (confirm) {
-                              await folderProvider.remove(folder);
-                            }
+                          if (confirm) {
+                            await folderProvider.remove(folder);
                           }
-                        },
-                      ))
-                  .toList(),
-            ),
-          );
-        },
-      ),
+                        }
+                      },
+                    ))
+                .toList(),
+          ),
+        );
+      },
     );
   }
 }
