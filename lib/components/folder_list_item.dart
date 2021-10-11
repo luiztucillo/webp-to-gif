@@ -4,7 +4,7 @@ import 'package:webp_to_gif/models/folder_model.dart';
 class FolderListItem extends StatelessWidget {
   final FolderModel folder;
   final VoidCallback onPressed;
-  final VoidCallback? onLongPress;
+  final Function(BuildContext)? onLongPress;
 
   const FolderListItem({
     Key? key,
@@ -24,7 +24,11 @@ class FolderListItem extends StatelessWidget {
         ],
       ),
       onTap: onPressed,
-      onLongPress: onLongPress,
+      onLongPress: () {
+        if (onLongPress != null) {
+          onLongPress!(context);
+        }
+      },
     );
   }
 

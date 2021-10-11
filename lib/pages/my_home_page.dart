@@ -1,3 +1,4 @@
+import 'package:webp_to_gif/components/algum_popup_menu.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
 import 'package:webp_to_gif/components/folder_list_item.dart';
 import 'package:webp_to_gif/components/layout.dart';
@@ -53,14 +54,18 @@ class MyHomePage extends StatelessWidget {
                           );
                           folderProvider.changeFolder(null);
                         },
-                        onLongPress: () async {
-                          var confirm = await showConfirmDialog(
-                            context: context,
-                            title: 'Deseja remover a pasta ${folder.name}?',
-                          );
+                        onLongPress: (BuildContext context) async {
+                          var selected = await AlbumPopupMenu.showAlbumMenu(context: context);
 
-                          if (confirm) {
-                            await folderProvider.remove(folder);
+                          if (selected == 1) {
+                            var confirm = await showConfirmDialog(
+                              context: context,
+                              title: 'Deseja remover a pasta ${folder.name}?',
+                            );
+
+                            if (confirm) {
+                              await folderProvider.remove(folder);
+                            }
                           }
                         },
                       ))
