@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
-import 'package:webp_to_gif/models/image_types/gif.dart';
+import 'package:path/path.dart' as p;
+import 'package:webp_to_gif/models/image_types/image_type.dart';
 
 class ImageRepository {
   static final ImageRepository _instance =
@@ -25,12 +26,20 @@ class ImageRepository {
 
     for (var img in list) {
       if (FileSystemEntity.isFileSync(img.path)) {
+        var file = File(img.path);
+        var type = getImageType(p.extension(img.path));
+
+        if (type == null) {
+          file.deleteSync();
+          continue;
+        }
+
         imageList.add(
           ImageModel(
             folder: folder,
-            file: File(img.path),
+            file: file,
             converted: true,
-            imageType: Gif(),
+            imageType: type,
           ),
         );
       }

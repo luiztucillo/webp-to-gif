@@ -14,6 +14,7 @@ import 'package:webp_to_gif/models/image_types/mp4.dart';
 import 'package:webp_to_gif/models/image_types/png.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
 import 'package:webp_to_gif/providers/ads_provider.dart';
+import 'package:webp_to_gif/providers/config_provider.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -39,8 +40,6 @@ class ImagesPage extends StatefulWidget {
 }
 
 class _ImagesPageState extends State<ImagesPage> {
-  int grid = 3;
-
   AdsProvider? _adsProvider;
   Ads? ads;
 
@@ -98,14 +97,15 @@ class _ImagesPageState extends State<ImagesPage> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => SelectionModeProvider(),
-      child: Consumer4<FoldersProvider, SelectionModeProvider, ShareProvider,
-          AdsProvider>(
+      child: Consumer5<FoldersProvider, SelectionModeProvider, ShareProvider,
+          AdsProvider, ConfigProvider>(
         builder: (
           context,
           folderProvider,
           selectionModeProvider,
           shareProvider,
           adsProvider,
+          configProvider,
           child,
         ) {
           if (folderProvider.currentFolder == null) {
@@ -148,26 +148,26 @@ class _ImagesPageState extends State<ImagesPage> {
                 !adsProvider.showAds
                     ? Container()
                     : Container(
-                        color: Colors.grey.withAlpha(100),
-                        child: SizedBox(
-                          height: 100,
-                          child: ads!.gridWidget(),
-                        ),
-                      ),
+                  color: Colors.grey.withAlpha(100),
+                  child: SizedBox(
+                    height: 100,
+                    child: ads!.gridWidget(),
+                  ),
+                ),
                 Expanded(
                   child: GridView.count(
                     padding: const EdgeInsets.all(8),
-                    crossAxisCount: grid,
+                    crossAxisCount: configProvider.crossAxisCount,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     children: folderProvider.currentImages!
                         .map((ImageModel image) => ImageContainer(
-                              image: image,
-                              isSelected: image.isSelected(),
-                              onDelete: () {
-                                folderProvider.removeImage(image);
-                              },
-                            ))
+                      image: image,
+                      isSelected: image.isSelected(),
+                      onDelete: () {
+                        folderProvider.removeImage(image);
+                      },
+                    ))
                         .toList(),
                   ),
                 ),
@@ -200,9 +200,7 @@ class _ImagesPageState extends State<ImagesPage> {
                         return;
                       }
 
-                      setState(() {
-                        grid = size;
-                      });
+                      configProvider.setCrossAxisCount(size);
                     }),
                 _addButton(folderProvider),
               ],

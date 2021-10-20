@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:webp_to_gif/pages/albuns_page.dart';
 import 'package:webp_to_gif/providers/ads_provider.dart';
+import 'package:webp_to_gif/providers/config_provider.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:webp_to_gif/providers/share_provider.dart';
 import 'package:webp_to_gif/theme.dart';
@@ -31,8 +32,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => FoldersProvider()),
         ChangeNotifierProvider(create: (context) => ShareProvider()),
         ChangeNotifierProvider(create: (context) => AdsProvider()),
+        ChangeNotifierProvider(create: (_) => ConfigProvider()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'WebpToGif',
         theme: AppTheme.getTheme(),
         home: const AlbunsPage(),
