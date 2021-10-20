@@ -7,7 +7,9 @@ import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:image/image.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:webp_to_gif/models/image_types/gif.dart';
+import 'package:webp_to_gif/models/image_types/jpg.dart';
 import 'package:webp_to_gif/models/image_types/mp4.dart';
+import 'package:webp_to_gif/models/image_types/png.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
 
 import '../models/image_model.dart';
@@ -50,6 +52,26 @@ class ImageConverter {
     if (imgModel.imageType is Gif) {
       var name =
           '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
+      imgModel.file.copy(name);
+      imgModel.file = File(name);
+      imgModel.converted = true;
+      onConversionDone(imgModel);
+      return;
+    }
+
+    if (imgModel.imageType is Jpg) {
+      var name =
+          '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      imgModel.file.copy(name);
+      imgModel.file = File(name);
+      imgModel.converted = true;
+      onConversionDone(imgModel);
+      return;
+    }
+
+    if (imgModel.imageType is Png) {
+      var name =
+          '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.png';
       imgModel.file.copy(name);
       imgModel.file = File(name);
       imgModel.converted = true;

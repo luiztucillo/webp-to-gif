@@ -24,6 +24,10 @@ class ImageModel {
     updatedAt = stat.modified;
   }
 
+  void unselect() {
+    _selected = false;
+  }
+
   void toggleSelect() {
     _selected = !_selected;
   }

@@ -9,7 +9,9 @@ import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/models/image_model.dart';
 import 'package:webp_to_gif/models/image_types/gif.dart';
 import 'package:webp_to_gif/models/image_types/image_type.dart';
+import 'package:webp_to_gif/models/image_types/jpg.dart';
 import 'package:webp_to_gif/models/image_types/mp4.dart';
+import 'package:webp_to_gif/models/image_types/png.dart';
 import 'package:webp_to_gif/models/image_types/webp.dart';
 import 'package:webp_to_gif/providers/ads_provider.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
@@ -37,6 +39,8 @@ class ImagesPage extends StatefulWidget {
 }
 
 class _ImagesPageState extends State<ImagesPage> {
+  int grid = 3;
+
   AdsProvider? _adsProvider;
   Ads? ads;
 
@@ -141,17 +145,19 @@ class _ImagesPageState extends State<ImagesPage> {
             subtitle: _subtitle(),
             body: Column(
               children: [
-                !adsProvider.showAds ? Container() : Container(
-                  color: Colors.grey.withAlpha(100),
-                  child: SizedBox(
-                    height: 100,
-                    child:  ads!.gridWidget(),
-                  ),
-                ),
+                !adsProvider.showAds
+                    ? Container()
+                    : Container(
+                        color: Colors.grey.withAlpha(100),
+                        child: SizedBox(
+                          height: 100,
+                          child: ads!.gridWidget(),
+                        ),
+                      ),
                 Expanded(
                   child: GridView.count(
                     padding: const EdgeInsets.all(8),
-                    crossAxisCount: 3,
+                    crossAxisCount: grid,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     children: folderProvider.currentImages!
@@ -174,7 +180,33 @@ class _ImagesPageState extends State<ImagesPage> {
                 ),
               ],
             ),
-            barActions: _addButton(folderProvider),
+            barActions: Row(
+              children: [
+                IconButton(
+                    icon: const Icon(Icons.grid_view),
+                    onPressed: () async {
+                      var size = await showOptionsDialog<int>(
+                        context: context,
+                        options: {
+                          '2': 2,
+                          '3': 3,
+                          '4': 4,
+                          '5': 5,
+                        },
+                        title: 'Tamanho do grid',
+                      );
+
+                      if (size == null) {
+                        return;
+                      }
+
+                      setState(() {
+                        grid = size;
+                      });
+                    }),
+                _addButton(folderProvider),
+              ],
+            ),
           );
         },
       ),
@@ -187,68 +219,63 @@ class _ImagesPageState extends State<ImagesPage> {
   ) {
     List<Widget> bts = [];
 
-    bts.add(TextButton(
-      child: Row(
-        children: const [
-          Icon(Icons.share),
-          SizedBox(width: 8),
-          Text('Compartilhar'),
-        ],
-      ),
-      onPressed: () {
-        var files = folderProvider.currentImages!
-            .where((ImageModel img) => img.converted == true)
-            .map((ImageModel img) => img.file)
-            .toList();
-
-        List<String> images = [];
-
-        for (File file in files) {
-          images.add(file.path);
-        }
-
-        Share.shareFiles(images);
-      },
-    ));
-
-    bts.add(
-      TextButton(
-        child: Row(
-          children: const [
-            Icon(Icons.drive_file_move),
-            SizedBox(width: 8),
-            Text('Mover'),
-          ],
-        ),
-        onPressed: () async {
-          var folder = await showOptionsDialog<FolderModel>(
-            context: context,
-            title: 'Para qual álbum deseja mover?',
-            options: {
-              for (var folder in folderProvider.list) folder.name: folder
-            },
-          );
-
-          if (folder == null) {
-            return;
+    if (selectionModeProvider.selectedItems.isNotEmpty) {
+      bts.add(TextButton(
+        child: const Icon(Icons.layers_clear_outlined),
+        onPressed: () {
+          for (var img in folderProvider.currentImages!) {
+            img.unselect();
           }
-
-          folderProvider.moveFiles(selectionModeProvider.selectedItems, folder);
-
           selectionModeProvider.removeSelected();
         },
-      ),
-    );
+      ));
 
-    if (folderProvider.currentImages!.isNotEmpty) {
       bts.add(TextButton(
-        child: Row(
-          children: const [
-            Icon(Icons.delete),
-            SizedBox(width: 8),
-            Text('Remover'),
-          ],
+        child: const Icon(Icons.share),
+        onPressed: () {
+          var files = selectionModeProvider.selectedItems
+              .where((ImageModel img) => img.converted == true)
+              .map((ImageModel img) => img.file)
+              .toList();
+
+          List<String> images = [];
+
+          for (File file in files) {
+            images.add(file.path);
+          }
+
+          Share.shareFiles(images);
+        },
+      ));
+
+      bts.add(
+        TextButton(
+          child: const Icon(Icons.drive_file_move),
+          onPressed: () async {
+            var folder = await showOptionsDialog<FolderModel>(
+              context: context,
+              title: 'Para qual álbum deseja mover?',
+              options: {
+                for (var folder in folderProvider.list) folder.name: folder
+              },
+            );
+
+            if (folder == null) {
+              return;
+            }
+
+            folderProvider.moveFiles(
+              selectionModeProvider.selectedItems,
+              folder,
+            );
+
+            selectionModeProvider.removeSelected();
+          },
         ),
+      );
+
+      bts.add(TextButton(
+        child: const Icon(Icons.delete),
         onPressed: () {
           for (ImageModel imgModel in selectionModeProvider.selectedItems) {
             folderProvider.removeImage(imgModel);
@@ -273,8 +300,8 @@ class _ImagesPageState extends State<ImagesPage> {
             'GIF': Gif(),
             'WEBP': Webp(),
             'MP4': Mp4(),
-            // 'PNG': Png(),
-            // 'JPG': Jpg(),
+            'PNG': Png(),
+            'JPG': Jpg(),
           },
         );
 
@@ -293,6 +320,7 @@ class _ImagesPageState extends State<ImagesPage> {
         }
 
         List<ImageModel> models = [];
+
         for (String path in result.paths.whereType<String>().toList()) {
           var mdl = ImageModel(
             folder: folderProvider.currentFolder!,
@@ -306,8 +334,9 @@ class _ImagesPageState extends State<ImagesPage> {
 
         if (_adsProvider?.showAds == true) {
           ads!.showConvertingAd();
-          folderProvider.convert(models);
         }
+
+        folderProvider.convert(models);
       },
     );
   }

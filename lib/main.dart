@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:webp_to_gif/pages/albuns_page.dart';
 import 'package:webp_to_gif/providers/ads_provider.dart';
@@ -10,6 +13,10 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
+
+  getTemporaryDirectory().then((value) {
+    Directory(value.path).delete(recursive: true);
+  });
 
   runApp(const MyApp());
 }
