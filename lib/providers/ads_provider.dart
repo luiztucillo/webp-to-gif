@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
 
 class AdsProvider extends ChangeNotifier {
-  bool get showAds => true;
+  bool get showAds => false;
 }

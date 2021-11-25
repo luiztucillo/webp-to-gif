@@ -7,6 +7,7 @@ import 'package:webp_to_gif/pages/albuns_page.dart';
 import 'package:webp_to_gif/providers/ads_provider.dart';
 import 'package:webp_to_gif/providers/config_provider.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
+import 'package:webp_to_gif/providers/google_drive_provider.dart';
 import 'package:webp_to_gif/providers/share_provider.dart';
 import 'package:webp_to_gif/theme.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -29,10 +30,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => FoldersProvider()),
-        ChangeNotifierProvider(create: (context) => ShareProvider()),
-        ChangeNotifierProvider(create: (context) => AdsProvider()),
+        ChangeNotifierProvider(create: (_) => FoldersProvider()),
+        ChangeNotifierProvider(create: (_) => ShareProvider()),
+        ChangeNotifierProvider(create: (_) => AdsProvider()),
         ChangeNotifierProvider(create: (_) => ConfigProvider()),
+        ChangeNotifierProvider(create: (_) => GoogleDriveProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

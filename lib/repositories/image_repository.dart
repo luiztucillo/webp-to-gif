@@ -15,8 +15,6 @@ class ImageRepository {
 
   ImageRepository._internalConstructor();
 
-  Future<int?> create(ImageModel image, FolderModel folder) async {}
-
   Future<List<ImageModel>> list(FolderModel folder) async {
     final Directory _appDirFolder = Directory(folder.path);
 

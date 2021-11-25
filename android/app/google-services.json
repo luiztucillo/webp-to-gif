@@ -1,0 +1,64 @@
+{
+  "project_info": {
+    "project_number": "95071034110",
+    "project_id": "webptogif-f179d",
+    "storage_bucket": "webptogif-f179d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95071034110:android:543341d5575877c88223af",
+        "android_client_info": {
+          "package_name": "br.com.luiztucillo.webptogif"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "95071034110-felo36cp823f0pgvj5aum71t91phcucn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.luiztucillo.webptogif",
+            "certificate_hash": "31f2411ab941ec771fbd3703f6f9580e55f83965"
+          }
+        },
+        {
+          "client_id": "95071034110-gk8qa89t3qevmfec1qhuup0htl7jirrc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.luiztucillo.webptogif",
+            "certificate_hash": "5229b70a2f6a2cd181f732cf026435b2a9848a83"
+          }
+        },
+        {
+          "client_id": "95071034110-tbga689titjkklau0cg3vdqlm73oc3gk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.luiztucillo.webptogif",
+            "certificate_hash": "a25e7600068a293946bce2365d496415ed9deee0"
+          }
+        },
+        {
+          "client_id": "95071034110-70uarvgtj34nfkuus9n4dsksoo1vq2m0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqB3GHCM6wVi-j-Gs_3jwaU5o2iIftaCU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "95071034110-70uarvgtj34nfkuus9n4dsksoo1vq2m0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-4138453881791255~6971715490"
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,7 +7,10 @@ import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:webp_to_gif/providers/google_drive_provider.dart';
 import 'package:webp_to_gif/providers/share_provider.dart';
+import 'package:webp_to_gif/services/drive_api.dart';
+import 'package:webp_to_gif/services/google_auth_client.dart';
 
 import 'images_page.dart';
 
@@ -18,11 +21,19 @@ class AlbunsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<FoldersProvider, ShareProvider>(
-      builder: (context, folderProvider, shareProvider, child) {
+    return Consumer3<FoldersProvider, GoogleDriveProvider, ShareProvider>(
+      builder: (
+        context,
+        folderProvider,
+        googleDriveProvider,
+        shareProvider,
+        child,
+      ) {
         if (shareProvider.sharedFiles != null) {
-          return shareProvider.widget(onShare:
-              (List<SharedMediaFile> sharedFiles, FolderModel folder) {
+          return shareProvider.widget(onShare: (
+            List<SharedMediaFile> sharedFiles,
+            FolderModel folder,
+          ) {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => ImagesPage(
@@ -38,19 +49,38 @@ class AlbunsPage extends StatelessWidget {
           title: 'Álbuns',
           subtitle: '${folderProvider.folderCount} álbuns',
           showLeading: false,
-          barActions: IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              showInputDialog(
-                context: context,
-                title: 'Criar álbum',
-                helperText: 'Nome do álbum',
-                onSubmitted: (String value) {
-                  folderProvider.create(value);
-                  Navigator.pop(context);
+          barActions: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  showInputDialog(
+                    context: context,
+                    title: 'Criar álbum',
+                    helperText: 'Nome do álbum',
+                    onSubmitted: (String value) {
+                      folderProvider.create(value);
+                      Navigator.pop(context);
+                    },
+                  );
                 },
-              );
-            },
+              ),
+              googleDriveProvider.loading ? const CircularProgressIndicator() : IconButton(
+                icon: Icon(
+                  googleDriveProvider.account == null
+                      ? Icons.add_to_drive
+                      : Icons.verified_user,
+                ),
+                onPressed: () {
+                  if (googleDriveProvider.account == null) {
+                    googleDriveProvider.login();
+                  } else {
+                    final client = GoogleAuthClient(googleDriveProvider.account!);
+                    DriveApi(client).sync();
+                  }
+                },
+              ),
+            ],
           ),
           body: GridView.count(
             padding: const EdgeInsets.all(8),
