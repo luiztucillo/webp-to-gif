@@ -94,11 +94,11 @@ class ImageConverter {
     }
   }
 
-  resize(ImageModel imgModel, int toWidth, int toHeight, ConversionCallback onConversionDone) {
+  resize(ImageModel imgModel, int toWidth, int toHeight, int frameRate, ConversionCallback onConversionDone) {
     queue.add(QueueItem(
       imageModel: imgModel,
       onConversionDone: onConversionDone,
-      action: Resize(width: toWidth, height: toHeight),
+      action: Resize(width: toWidth, height: toHeight, frameRate: frameRate),
     ));
 
     if (!running) {
@@ -128,7 +128,7 @@ class ImageConverter {
 
     if (queueItem.action is Resize) {
       var resize = queueItem.action as Resize;
-      convertedFile = await _resizeGif(queueItem.imageModel, resize.width, resize.height);
+      convertedFile = await _resizeGif(queueItem.imageModel, resize.width, resize.height, resize.frameRate);
     }
 
     if (convertedFile != null) {
@@ -180,7 +180,7 @@ Future<File?> _convertMp4(ImageModel imageModel) async {
   }
 }
 
-Future<File?> _resizeGif(ImageModel imageModel, int toWidth, int toHeight) async {
+Future<File?> _resizeGif(ImageModel imageModel, int toWidth, int toHeight, int frameRate) async {
   var name = '${DateTime.now().millisecondsSinceEpoch}.gif';
 
   var path = '${imageModel.folder.path}/$name';
@@ -192,7 +192,7 @@ Future<File?> _resizeGif(ImageModel imageModel, int toWidth, int toHeight) async
     '-vf',
     'scale=$toWidth:$toHeight',
     '-r',
-    '10',
+    '$frameRate',
     tmp,
   ];
 

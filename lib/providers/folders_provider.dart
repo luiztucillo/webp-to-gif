@@ -123,7 +123,7 @@ class FoldersProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> resize(ImageModel imgModel, int width, int height) async {
+  Future<void> resize(ImageModel imgModel, int width, int height, int frameRate) async {
     if (_currentFolder == null) {
       return;
     }
@@ -143,7 +143,7 @@ class FoldersProvider extends ChangeNotifier {
 
     _convertingList.add(newImgModel);
 
-    await ImageConverter().resize(newImgModel, width, height, (_) {
+    await ImageConverter().resize(newImgModel, width, height, frameRate, (_) {
       _convertingList.remove(newImgModel);
 
       if (_convertingList.isEmpty) {
