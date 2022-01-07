@@ -6,6 +6,8 @@ import 'dart:isolate';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:image/image.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:webp_to_gif/models/converter_actions/convert.dart';
+import 'package:webp_to_gif/models/converter_actions/resize.dart';
 import 'package:webp_to_gif/models/image_types/gif.dart';
 import 'package:webp_to_gif/models/image_types/jpg.dart';
 import 'package:webp_to_gif/models/image_types/mp4.dart';
@@ -19,8 +21,13 @@ typedef ConversionCallback = void Function(ImageModel);
 class QueueItem {
   final ImageModel imageModel;
   final ConversionCallback onConversionDone;
+  final Convert action;
 
-  QueueItem({required this.imageModel, required this.onConversionDone});
+  QueueItem({
+    required this.imageModel,
+    required this.onConversionDone,
+    required this.action,
+  });
 }
 
 class DecodeParam {
@@ -50,8 +57,7 @@ class ImageConverter {
     ConversionCallback onConversionDone,
   ) async {
     if (imgModel.imageType is Gif) {
-      var name =
-          '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
+      var name = '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
       imgModel.file.copy(name);
       imgModel.file = File(name);
       imgModel.converted = true;
@@ -60,8 +66,7 @@ class ImageConverter {
     }
 
     if (imgModel.imageType is Jpg) {
-      var name =
-          '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      var name = '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
       imgModel.file.copy(name);
       imgModel.file = File(name);
       imgModel.converted = true;
@@ -70,8 +75,7 @@ class ImageConverter {
     }
 
     if (imgModel.imageType is Png) {
-      var name =
-          '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.png';
+      var name = '${imgModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.png';
       imgModel.file.copy(name);
       imgModel.file = File(name);
       imgModel.converted = true;
@@ -82,6 +86,19 @@ class ImageConverter {
     queue.add(QueueItem(
       imageModel: imgModel,
       onConversionDone: onConversionDone,
+      action: Convert(),
+    ));
+
+    if (!running) {
+      _exec();
+    }
+  }
+
+  resize(ImageModel imgModel, int toWidth, int toHeight, ConversionCallback onConversionDone) {
+    queue.add(QueueItem(
+      imageModel: imgModel,
+      onConversionDone: onConversionDone,
+      action: Resize(width: toWidth, height: toHeight),
     ));
 
     if (!running) {
@@ -101,10 +118,17 @@ class ImageConverter {
 
     File? convertedFile;
 
-    if (queueItem.imageModel.imageType is Webp) {
-      convertedFile = await _convertWebp(queueItem.imageModel);
-    } else if (queueItem.imageModel.imageType is Mp4) {
-      convertedFile = await _convertMp4(queueItem.imageModel);
+    if (queueItem.action is Convert) {
+      if (queueItem.imageModel.imageType is Webp) {
+        convertedFile = await _convertWebp(queueItem.imageModel);
+      } else if (queueItem.imageModel.imageType is Mp4) {
+        convertedFile = await _convertMp4(queueItem.imageModel);
+      }
+    }
+
+    if (queueItem.action is Resize) {
+      var resize = queueItem.action as Resize;
+      convertedFile = await _resizeGif(queueItem.imageModel, resize.width, resize.height);
     }
 
     if (convertedFile != null) {
@@ -133,7 +157,43 @@ Future<File?> _convertMp4(ImageModel imageModel) async {
     imageModel.file.path,
     '-loop',
     '0',
+    '-r',
+    '10',
     tmp
+  ];
+
+  try {
+    FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
+    await _ffmpeg.executeWithArguments(arguments);
+
+    var file = File(tmp);
+
+    if (await file.length() == 0) {
+      return null;
+    }
+
+    file.copySync(path);
+
+    return File(path);
+  } catch (e) {
+    return null;
+  }
+}
+
+Future<File?> _resizeGif(ImageModel imageModel, int toWidth, int toHeight) async {
+  var name = '${DateTime.now().millisecondsSinceEpoch}.gif';
+
+  var path = '${imageModel.folder.path}/$name';
+  var tmp = (await getTemporaryDirectory()).path + '/$name';
+
+  var arguments = [
+    '-i',
+    imageModel.file.path,
+    '-vf',
+    'scale=$toWidth:$toHeight',
+    '-r',
+    '10',
+    tmp,
   ];
 
   try {
@@ -173,21 +233,22 @@ void _convertWebpIsolate(DecodeParam param) async {
     return;
   }
 
+  param.sendPort.send(await _encode(image, param.imageModel.folder.path));
+}
+
+Future<File?> _encode(Animation image, String path) async {
   try {
-    var name =
-        '${param.imageModel.folder.path}/${DateTime.now().millisecondsSinceEpoch}.gif';
+    var name = '$path/${DateTime.now().millisecondsSinceEpoch}.gif';
     File file = File(name);
 
     if (image.numFrames == 1) {
-      file.writeAsBytesSync(encodeGif(image.frames.first, samplingFactor: 100),
-          flush: true);
+      file.writeAsBytesSync(encodeGif(image.frames.first, samplingFactor: 100), flush: true);
     } else {
-      file.writeAsBytesSync(encodeGifAnimation(image, samplingFactor: 100)!,
-          flush: true);
+      file.writeAsBytesSync(encodeGifAnimation(image, samplingFactor: 100)!, flush: true);
     }
 
-    param.sendPort.send(file);
+    return file;
   } catch (e) {
-    param.sendPort.send(null);
+    //
   }
 }

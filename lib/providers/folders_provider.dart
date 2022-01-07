@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:webp_to_gif/models/folder_model.dart';
 import 'package:flutter/material.dart';
 import 'package:webp_to_gif/models/image_model.dart';
@@ -15,10 +17,13 @@ class FoldersProvider extends ChangeNotifier {
   bool _converting = false;
 
   FolderModel? get currentFolder => _currentFolder;
+
   List<ImageModel>? get currentImages => _currentImages;
+
   bool get converting => _converting;
 
   List<FolderModel> get list => _items;
+
   int get folderCount => _items.length;
 
   FoldersProvider() {
@@ -118,8 +123,41 @@ class FoldersProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> resize(ImageModel imgModel, int width, int height) async {
+    if (_currentFolder == null) {
+      return;
+    }
+
+    var newImgModel = ImageModel(
+      folder: imgModel.folder,
+      file: imgModel.file,
+      converted: false,
+      imageType: imgModel.imageType,
+    );
+
+    _converting = true;
+
+    _currentImages!.add(newImgModel);
+
+    customNotifyListeners();
+
+    _convertingList.add(newImgModel);
+
+    await ImageConverter().resize(newImgModel, width, height, (_) {
+      _convertingList.remove(newImgModel);
+
+      if (_convertingList.isEmpty) {
+        _converting = false;
+      }
+
+      FolderRepository().prepareDir(currentFolder!);
+
+      customNotifyListeners();
+    });
+  }
+
   customNotifyListeners() {
-    if(!_isDisposed){
+    if (!_isDisposed) {
       notifyListeners();
     }
   }
