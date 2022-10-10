@@ -182,13 +182,12 @@ Future<File?> _convertMp4(ImageModel imageModel) async {
 
 Future<File?> _resizeGif(ImageModel imageModel, int toWidth, int toHeight, int frameRate) async {
   var name = '${DateTime.now().millisecondsSinceEpoch}.gif';
-
   var path = '${imageModel.folder.path}/$name';
   var tmp = (await getTemporaryDirectory()).path + '/$name';
 
   var arguments = [
-    '-i',
-    imageModel.file.path,
+    '-y',
+    '-i', imageModel.file.path,
     '-vf',
     'scale=$toWidth:$toHeight',
     '-r',

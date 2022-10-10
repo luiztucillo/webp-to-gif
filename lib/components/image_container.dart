@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:webp_to_gif/components/image_container/dialog.dart';
 import 'package:webp_to_gif/providers/folders_provider.dart';
 import 'package:webp_to_gif/providers/selection_mode_provider.dart';
+import 'dart:ui' as ui;
 
 import '../models/image_model.dart';
+import '../pages/image_preview.dart';
 
 class ImageContainer extends StatelessWidget {
   final ImageModel image;
@@ -17,6 +18,34 @@ class ImageContainer extends StatelessWidget {
     required this.isSelected,
     required this.onDelete,
   }) : super(key: key);
+
+  _navigate(BuildContext context) async {
+    var file = image.file.readAsBytesSync();
+    var size = double.parse(file.lengthInBytes.toString());
+    ui.Image img = await decodeImageFromList(file);
+    var unit = 'bs';
+
+    if (size > 1024) {
+      size = (size / 1024).roundToDouble();
+      unit = 'Kbs';
+    }
+
+    if (size > 1024) {
+      size = (size / 1024).roundToDouble();
+      unit = 'Mbs';
+    }
+
+    if (size > 1024) {
+      size = (size / 1024).roundToDouble();
+      unit = 'Gbs';
+    }
+
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ImagePreview(
+      imageModel: image,
+      image: img,
+      size: '$size $unit',
+    )));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +83,7 @@ class ImageContainer extends StatelessWidget {
                 return;
               }
 
-              imageContainerDialog(context, image, foldersProvider);
+              _navigate(context);
             },
           ),
           image.converted

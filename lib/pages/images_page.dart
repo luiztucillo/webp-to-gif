@@ -97,8 +97,7 @@ class _ImagesPageState extends State<ImagesPage> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => SelectionModeProvider(),
-      child: Consumer5<FoldersProvider, SelectionModeProvider, ShareProvider,
-          AdsProvider, ConfigProvider>(
+      child: Consumer5<FoldersProvider, SelectionModeProvider, ShareProvider, AdsProvider, ConfigProvider>(
         builder: (
           context,
           folderProvider,
@@ -119,8 +118,7 @@ class _ImagesPageState extends State<ImagesPage> {
           }
 
           if (shareProvider.sharedFiles != null) {
-            return shareProvider.widget(
-                onShare: (List<SharedMediaFile> files, FolderModel folder) {
+            return shareProvider.widget(onShare: (List<SharedMediaFile> files, FolderModel folder) {
               if (folder.path == folderProvider.currentFolder!.path) {
                 _convertShared(files, folderProvider);
               } else {
@@ -148,12 +146,12 @@ class _ImagesPageState extends State<ImagesPage> {
                 !adsProvider.showAds
                     ? Container()
                     : Container(
-                  color: Colors.grey.withAlpha(100),
-                  child: SizedBox(
-                    height: 100,
-                    child: ads!.gridWidget(),
-                  ),
-                ),
+                        color: Colors.grey.withAlpha(100),
+                        child: SizedBox(
+                          height: 100,
+                          child: ads!.gridWidget(),
+                        ),
+                      ),
                 Expanded(
                   child: GridView.count(
                     padding: const EdgeInsets.all(8),
@@ -162,12 +160,12 @@ class _ImagesPageState extends State<ImagesPage> {
                     mainAxisSpacing: 8,
                     children: folderProvider.currentImages!
                         .map((ImageModel image) => ImageContainer(
-                      image: image,
-                      isSelected: image.isSelected(),
-                      onDelete: () {
-                        folderProvider.removeImage(image);
-                      },
-                    ))
+                              image: image,
+                              isSelected: image.isSelected(),
+                              onDelete: () {
+                                folderProvider.removeImage(image);
+                              },
+                            ))
                         .toList(),
                   ),
                 ),
@@ -253,9 +251,7 @@ class _ImagesPageState extends State<ImagesPage> {
             var folder = await showOptionsDialog<FolderModel>(
               context: context,
               title: 'Para qual álbum deseja mover?',
-              options: {
-                for (var folder in folderProvider.list) folder.name: folder
-              },
+              options: {for (var folder in folderProvider.list) folder.name: folder},
             );
 
             if (folder == null) {
@@ -347,8 +343,7 @@ class _ImagesPageState extends State<ImagesPage> {
         file: File(file.path),
         converted: false,
         imageType: Type.getType(file.path),
-        thumbnail:
-            file.thumbnail != null ? File(file.thumbnail!) : File(file.path),
+        thumbnail: file.thumbnail != null ? File(file.thumbnail!) : File(file.path),
       );
 
       models.add(mdl);

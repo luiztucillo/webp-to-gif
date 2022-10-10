@@ -1,6 +1,7 @@
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:webp_to_gif/components/album_popup_menu.dart';
 import 'package:webp_to_gif/components/app_dialogs.dart';
+import 'package:webp_to_gif/components/drive_modal.dart';
 import 'package:webp_to_gif/components/folder_list_item.dart';
 import 'package:webp_to_gif/components/layout.dart';
 import 'package:webp_to_gif/models/folder_model.dart';
@@ -65,19 +66,10 @@ class AlbunsPage extends StatelessWidget {
                   );
                 },
               ),
-              googleDriveProvider.loading ? const CircularProgressIndicator() : IconButton(
-                icon: Icon(
-                  googleDriveProvider.account == null
-                      ? Icons.add_to_drive
-                      : Icons.verified_user,
-                ),
+              IconButton(
+                icon: Icon(Icons.add_to_drive),
                 onPressed: () {
-                  if (googleDriveProvider.account == null) {
-                    googleDriveProvider.login();
-                  } else {
-                    final client = GoogleAuthClient(googleDriveProvider.account!);
-                    DriveApi(client).sync();
-                  }
+                  showDriveModal(context);
                 },
               ),
             ],
@@ -89,34 +81,33 @@ class AlbunsPage extends StatelessWidget {
             mainAxisSpacing: 24,
             childAspectRatio: 0.9,
             children: folderProvider.list
-                .map((FolderModel folder) => FolderListItem(
-                      folder: folder,
-                      onPressed: () async {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ImagesPage(
-                              folder: folder,
-                            ),
-                          ),
+                .map(
+                  (FolderModel folder) => FolderListItem(
+                    folder: folder,
+                    onPressed: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ImagesPage(folder: folder),
+                        ),
+                      );
+                      folderProvider.changeFolder(null);
+                    },
+                    onLongPress: (BuildContext context) async {
+                      var selected = await AlbumPopupMenu.showAlbumMenu(context: context);
+
+                      if (selected == 1) {
+                        var confirm = await showConfirmDialog(
+                          context: context,
+                          title: 'Deseja remover a pasta ${folder.name}?',
                         );
-                        folderProvider.changeFolder(null);
-                      },
-                      onLongPress: (BuildContext context) async {
-                        var selected = await AlbumPopupMenu.showAlbumMenu(
-                            context: context);
 
-                        if (selected == 1) {
-                          var confirm = await showConfirmDialog(
-                            context: context,
-                            title: 'Deseja remover a pasta ${folder.name}?',
-                          );
-
-                          if (confirm) {
-                            await folderProvider.remove(folder);
-                          }
+                        if (confirm) {
+                          await folderProvider.remove(folder);
                         }
-                      },
-                    ))
+                      }
+                    },
+                  ),
+                )
                 .toList(),
           ),
         );

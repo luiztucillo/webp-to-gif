@@ -16,12 +16,12 @@ class FolderRepository {
 
   final String table = 'folders';
 
-  Future<String> _basePath() async {
+  Future<String> basePath() async {
     return (await getApplicationDocumentsDirectory()).path + '/app_folders';
   }
 
   Future<FolderModel?> create(String name) async {
-    final Directory _appDir = Directory('${await _basePath()}/$name/');
+    final Directory _appDir = Directory('${await basePath()}/$name/');
 
     if (await _appDir.exists()) {
       return null;
@@ -37,7 +37,7 @@ class FolderRepository {
 
   Future<bool> delete(FolderModel folder) async {
     final Directory _appDirFolder =
-        Directory('${await _basePath()}/${folder.name}/');
+        Directory('${await basePath()}/${folder.name}/');
 
     try {
       _appDirFolder.delete(recursive: true);
@@ -49,7 +49,7 @@ class FolderRepository {
 
   Future<List<FolderModel>> list() async {
     try {
-      final Directory _appDirFolder = Directory(await _basePath());
+      final Directory _appDirFolder = Directory(await basePath());
 
       List<FileSystemEntity> list = _appDirFolder.listSync();
 
